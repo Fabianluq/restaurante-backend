@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/mesas")
@@ -26,7 +25,7 @@ public class MesaController {
 
     @PostMapping
     public ResponseEntity<MesaResponse> crearMesa(@RequestBody MesaRequest mesaRequest) {
-        EstadoMesa  estadoMesa = estadoMesaRepository.findById(mesaRequest.getEstadoId())
+        EstadoMesa estadoMesa = estadoMesaRepository.findById(mesaRequest.getEstadoId())
                 .orElseThrow(() -> new RuntimeException("Estado no encontrado"));
         Mesa mesa = MesaMapper.toEntity(mesaRequest, estadoMesa);
         Mesa nuevaMesa = mesaService.crearMesa(mesa);
@@ -44,7 +43,7 @@ public class MesaController {
     }
 
     @GetMapping("/estado/{estadoId}")
-    public ResponseEntity<List<MesaResponse>> ListarMesaPorEstado(@PathVariable Long estadoId ) {
+    public ResponseEntity<List<MesaResponse>> ListarMesaPorEstado(@PathVariable Long estadoId) {
         List<MesaResponse> mesas = mesaService.ListarMesaPorEstado(estadoId)
                 .stream()
                 .map(MesaMapper::toResponse)
@@ -53,9 +52,9 @@ public class MesaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MesaResponse> actualizarMesa (@PathVariable Long id,
-                                                        @RequestBody MesaRequest mesaRequest) {
-        EstadoMesa  estadoMesa = estadoMesaRepository.findById(mesaRequest.getEstadoId())
+    public ResponseEntity<MesaResponse> actualizarMesa(@PathVariable Long id,
+            @RequestBody MesaRequest mesaRequest) {
+        EstadoMesa estadoMesa = estadoMesaRepository.findById(mesaRequest.getEstadoId())
                 .orElseThrow(() -> new RuntimeException("Estado no encontrado"));
         Mesa mesa = MesaMapper.toEntity(mesaRequest, estadoMesa);
         try {

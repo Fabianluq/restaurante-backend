@@ -32,7 +32,7 @@ public class RolController {
                 .stream()
                 .map(RolMapper::toResponse)
                 .toList();
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(roles);
     }
 
     @GetMapping("/rol/{nombre}")
@@ -57,14 +57,13 @@ public class RolController {
     }
 
     @DeleteMapping
-    public ResponseEntity<Void> eliminarRol(@PathVariable Long id){
-        try{
+    public ResponseEntity<Void> eliminarRol(@PathVariable Long id) {
+        try {
             rolService.eliminarRol(id);
             return ResponseEntity.noContent().build();
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
 
     }
 }
-

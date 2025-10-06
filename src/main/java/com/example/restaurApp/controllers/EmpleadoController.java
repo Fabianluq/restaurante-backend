@@ -7,6 +7,8 @@ import com.example.restaurApp.entity.Rol;
 import com.example.restaurApp.mapper.EmpleadoMapper;
 import com.example.restaurApp.repository.RolRepository;
 import com.example.restaurApp.service.EmpleadoService;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,13 +28,17 @@ public class EmpleadoController {
 
     @PostMapping
     public ResponseEntity<EmpleadoResponse> crearEmpleado(@RequestBody EmpleadoRequest request) {
+        if (request.getRolId() == null) {
+            return ResponseEntity.badRequest().body(null);
+        }
         Rol rol = rolRepository.findById(request.getRolId())
-                .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
+                .orElseThrow(() -> {
+                    return new RuntimeException("Rol no encontrado");
+                });
         Empleado empleado = EmpleadoMapper.toEntity(request, rol);
         Empleado nuevoEmpleado = empleadoService.crearEmpleado(empleado);
-        return ResponseEntity.status(201).body(EmpleadoMapper.toResponse(nuevoEmpleado));
+        return ResponseEntity.status(HttpStatus.CREATED).body(EmpleadoMapper.toResponse(nuevoEmpleado));
     }
-
 
     @GetMapping
     public ResponseEntity<List<EmpleadoResponse>> listarEmpleados() {
@@ -45,7 +51,7 @@ public class EmpleadoController {
 
     @GetMapping("/{id}")
     public ResponseEntity<EmpleadoResponse> buscarPorId(@PathVariable Long id) {
-        return  empleadoService.buscarPorId(id).map(EmpleadoMapper::toResponse).map(ResponseEntity::ok)
+        return empleadoService.buscarPorId(id).map(EmpleadoMapper::toResponse).map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -61,8 +67,9 @@ public class EmpleadoController {
         return empleadoService.buscarPorCorreo(correo).map(EmpleadoMapper::toResponse)
                 .map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
+
     @GetMapping("/rol/{rolId}")
-    public ResponseEntity<List<EmpleadoResponse>> ListarEmpleadoPorRol(@PathVariable Long rolId ) {
+    public ResponseEntity<List<EmpleadoResponse>> ListarEmpleadoPorRol(@PathVariable Long rolId) {
         List<EmpleadoResponse> empleados = empleadoService.ListarEmpleadoPorRol(rolId)
                 .stream()
                 .map(EmpleadoMapper::toResponse)
@@ -72,7 +79,7 @@ public class EmpleadoController {
 
     @PutMapping("/{id}")
     public ResponseEntity<EmpleadoResponse> actualizarEmpleado(@PathVariable Long id,
-                                                               @RequestBody EmpleadoRequest request) {
+            @RequestBody EmpleadoRequest request) {
         Rol rol = rolRepository.findById(request.getRolId())
                 .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
         Empleado empleado = EmpleadoMapper.toEntity(request, rol);
@@ -95,4 +102,3 @@ public class EmpleadoController {
     }
 
 }
-

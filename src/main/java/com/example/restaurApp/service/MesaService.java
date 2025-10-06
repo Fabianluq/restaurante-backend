@@ -1,21 +1,20 @@
 package com.example.restaurApp.service;
 
-import com.example.restaurApp.entity.EstadoMesa;
 import com.example.restaurApp.entity.Mesa;
 import com.example.restaurApp.repository.MesaRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class MesaService {
     private MesaRepository mesaRepository;
+
     public MesaService(MesaRepository mesaRepository) {
         this.mesaRepository = mesaRepository;
     }
 
-    public Mesa crearMesa (Mesa mesa) {
+    public Mesa crearMesa(Mesa mesa) {
         return mesaRepository.save(mesa);
     }
 
@@ -40,7 +39,7 @@ public class MesaService {
     }
 
     public void eliminarMesa(Long id) {
-        if (!mesaRepository.existsById(id)){
+        if (!mesaRepository.existsById(id)) {
             throw new RuntimeException("Empleado no encontrado con id: " + id);
         }
         mesaRepository.deleteById(id);

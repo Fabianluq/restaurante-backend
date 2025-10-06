@@ -7,15 +7,14 @@ import com.example.restaurApp.entity.Rol;
 
 public class EmpleadoMapper {
 
-    public static EmpleadoResponse toResponse (Empleado empleado) {
+    public static EmpleadoResponse toResponse(Empleado empleado) {
         return new EmpleadoResponse(
                 empleado.getId(),
                 empleado.getNombre(),
                 empleado.getApellido(),
                 empleado.getCorreo(),
                 empleado.getTelefono(),
-                empleado.getRol().getNombre()
-        );
+                empleado.getRol().getNombre());
     }
 
     public static Empleado toEntity(EmpleadoRequest request, Rol rol) {
