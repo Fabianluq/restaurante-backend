@@ -4,20 +4,18 @@ import com.example.restaurApp.dto.CartaResponse;
 import com.example.restaurApp.dto.ProductoRequest;
 import com.example.restaurApp.dto.ProductoResponse;
 import com.example.restaurApp.entity.Categoria;
-import com.example.restaurApp.entity.EstadoMesa;
 import com.example.restaurApp.entity.EstadoProducto;
 import com.example.restaurApp.entity.Producto;
 
 public class ProductoMapper {
-    public static ProductoResponse toResponse (Producto producto) {
+    public static ProductoResponse toResponse(Producto producto) {
         return new ProductoResponse(
                 producto.getId(),
                 producto.getNombre(),
                 producto.getDescripcion(),
                 producto.getPrecio(),
                 producto.getCategoria().getNombre(),
-                producto.getEstadoProducto().getNombre()
-        );
+                producto.getEstadoProducto().getNombre());
     }
 
     public static CartaResponse toCartaResponse(Producto producto) {
@@ -25,8 +23,7 @@ public class ProductoMapper {
                 producto.getNombre(),
                 producto.getDescripcion(),
                 producto.getPrecio(),
-                producto.getCategoria().getNombre()
-        );
+                producto.getCategoria().getNombre());
     }
 
     public static Producto toEntity(ProductoRequest request, Categoria categoria, EstadoProducto estadoProducto) {

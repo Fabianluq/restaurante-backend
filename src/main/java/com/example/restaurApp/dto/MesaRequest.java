@@ -1,7 +1,5 @@
 package com.example.restaurApp.dto;
 
-import com.example.restaurApp.entity.EstadoMesa;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

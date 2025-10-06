@@ -13,9 +13,11 @@ public class EmpleadoRequest {
     private String contrasenia;
     private Long rolId;
 
-    public EmpleadoRequest(){}
-    public EmpleadoRequest(Long rolId,  String nombre, String apellido, String correo,
-                           String telefono, String contrasenia){
+    public EmpleadoRequest() {
+    }
+
+    public EmpleadoRequest(Long rolId, String nombre, String apellido, String correo,
+            String telefono, String contrasenia) {
         this.rolId = rolId;
         this.nombre = nombre;
         this.apellido = apellido;

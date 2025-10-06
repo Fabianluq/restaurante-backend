@@ -14,6 +14,7 @@ import java.util.List;
 @RequestMapping("/categorias")
 public class CategoriaController {
     private CategoriaService categoriaService;
+
     public CategoriaController(CategoriaService categoriaService) {
         this.categoriaService = categoriaService;
     }
@@ -44,7 +45,8 @@ public class CategoriaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CategoriaResponse> actualizarCategoria(@RequestBody Long id, @RequestBody CategoriaRequest categoriaRequest) {
+    public ResponseEntity<CategoriaResponse> actualizarCategoria(@RequestBody Long id,
+            @RequestBody CategoriaRequest categoriaRequest) {
         Categoria categoria = CategoriaMapper.toEntity(categoriaRequest);
         try {
             Categoria actualizada = categoriaService.actualizarCategoria(id, categoria);
@@ -56,11 +58,11 @@ public class CategoriaController {
     }
 
     @DeleteMapping
-    public ResponseEntity<Void> eliminarCtegoria(@PathVariable Long id){
-        try{
+    public ResponseEntity<Void> eliminarCtegoria(@PathVariable Long id) {
+        try {
             categoriaService.eliminarCategoria(id);
             return ResponseEntity.noContent().build();
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
 

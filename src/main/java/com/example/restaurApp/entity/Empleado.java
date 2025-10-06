@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table (name= "empleados")
+@Table(name = "empleados")
 @Getter
 @Setter
 public class Empleado {
@@ -23,7 +23,9 @@ public class Empleado {
     @JoinColumn(name = "id_rol", nullable = false)
     private Rol rol;
 
-    public Empleado() {}
+    public Empleado() {
+    }
+
     public Empleado(String nombre, String apellido, String correo, String telefono, String contrasenia) {
         this.nombre = nombre;
         this.apellido = apellido;
@@ -33,4 +35,3 @@ public class Empleado {
     }
 
 }
-
