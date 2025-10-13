@@ -1,0 +1,18 @@
+package com.example.restaurApp.dto;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class EstadoReservaResponse {
+    private Long id;
+    private String descripcion;
+
+    public EstadoReservaResponse() {}
+
+    public EstadoReservaResponse(Long id, String descripcion) {
+        this.id = id;
+        this.descripcion = descripcion;
+    }
+}
