@@ -1,30 +1,49 @@
 package com.example.restaurApp.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.time.LocalDate;
-import java.time.LocalTime;
 
 @Getter
 @Setter
 public class PedidoRequest {
-    private LocalDate fechaPedido;
-    private LocalTime horaPedido;
+    // fechaPedido y horaPedido se generan automáticamente - no se reciben en el request
+    @NotNull
     private Long estadoId;
-    private Long empleadoId;
     private Long mesaId;
-    private Long clienteId;
+    private boolean paraLlevar;
+    
+    // Datos del cliente - SOLO necesarios para pedidos para llevar
+    @Size(min = 1, max = 60)
+    private String nombreCliente;
+    @Size(min = 1, max = 60)
+    private String apellidoCliente;
+    @Email
+    private String correoCliente;
+    @Size(min = 6, max = 20)
+    private String telefonoCliente;
 
     public PedidoRequest() {}
 
-    public PedidoRequest(LocalDate fechaPedido, LocalTime horaPedido,
-                         Long estadoId, Long empleadoId, Long mesaId, Long clienteId) {
-        this.fechaPedido = fechaPedido;
-        this.horaPedido = horaPedido;
+    public PedidoRequest(Long estadoId, Long mesaId, boolean paraLlevar) {
         this.estadoId = estadoId;
-        this.empleadoId = empleadoId;
         this.mesaId = mesaId;
-        this.clienteId = clienteId;
+        this.paraLlevar = paraLlevar;
+    }
+    
+    // Constructor para pedidos para llevar con datos del cliente
+    public PedidoRequest(Long estadoId, boolean paraLlevar, 
+                        String nombreCliente, String apellidoCliente, 
+                        String correoCliente, String telefonoCliente) {
+        this.estadoId = estadoId;
+        this.mesaId = null; // Para llevar no tiene mesa
+        this.paraLlevar = paraLlevar;
+        this.nombreCliente = nombreCliente;
+        this.apellidoCliente = apellidoCliente;
+        this.correoCliente = correoCliente;
+        this.telefonoCliente = telefonoCliente;
     }
 }

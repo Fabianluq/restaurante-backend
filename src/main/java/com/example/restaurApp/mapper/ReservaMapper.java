@@ -10,11 +10,11 @@ import com.example.restaurApp.entity.Reserva;
 public class ReservaMapper {
     public static ReservaResponse toResponse(Reserva reserva){
         return new ReservaResponse(
-                reserva.getId(),
+                "Su reserva fue creada exitosamente.",
                 reserva.getFechaReserva(),
                 reserva.getHoraReserva(),
                 reserva.getCantidadPersonas(),
-                reserva.getCliente().getNombre(),
+                reserva.getCliente().getNombre() + " " + reserva.getCliente().getApellido(),
                 reserva.getEstadoReserva().getDescripcion()
         );
     }

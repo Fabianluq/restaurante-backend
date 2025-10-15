@@ -29,7 +29,7 @@ public class EstadoProductoService {
     public EstadoProducto actualizarEstadoProducto(Long id,EstadoProducto estadoProducto) {
         return estadoProductoRepository.findById(id)
             .map( ep -> {
-                ep.setNombre(estadoProducto.getNombre());
+                ep.setDescripcion(estadoProducto.getDescripcion());
                 return  estadoProductoRepository.save(ep);
 
             }).orElseThrow(() -> new RuntimeException("Estado de producto no encontrao"));

@@ -10,9 +10,11 @@ import org.springframework.web.bind.annotation.*;
 
 import com.example.restaurApp.dto.LoginRequest;
 import com.example.restaurApp.dto.LoginResponse;
+import com.example.restaurApp.dto.ApiResponse;
 import com.example.restaurApp.entity.Empleado;
 import com.example.restaurApp.repository.EmpleadoRepository;
 import com.example.restaurApp.security.JwtUtil;
+import com.example.restaurApp.util.EmpleadoUtil;
 
 @RestController
 @RequestMapping("/auth")
@@ -30,22 +32,35 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest req) {
-        try {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest req) {
+        Authentication auth = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(req.getCorreo(), req.getContrasenia()));
 
-            Authentication auth = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(req.getCorreo(), req.getContrasenia()));
+        Empleado emp = empleadoRepository.findByCorreo(req.getCorreo())
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado en BD"));
 
-            Empleado emp = empleadoRepository.findByCorreo(req.getCorreo())
-                    .orElseThrow(() -> new RuntimeException("Empleado no encontrado en BD"));
+        // Validar que el empleado esté activo
+        EmpleadoUtil.validarEmpleadoActivo(emp);
 
-            String token = jwtUtil.generateToken(emp.getCorreo(), emp.getRol().getNombre());
+        String token = jwtUtil.generateToken(emp.getCorreo(), emp.getRol().getNombre());
+        LoginResponse response = new LoginResponse(token, emp.getRol().getNombre());
 
-            return ResponseEntity.ok(new LoginResponse(token, emp.getRol().getNombre()));
-        } catch (BadCredentialsException ex) {
-            System.out.println("Error de credenciales para correo: " + req.getCorreo());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciales inválidas");
+        return ResponseEntity.ok(ApiResponse.success("Login exitoso", response));
+    }
+
+    @GetMapping("/validar-rol")
+    public ResponseEntity<ApiResponse<String>> validarRol(@RequestHeader("Authorization") String token) {
+        String username = jwtUtil.extractUsername(token.substring(7));
+        Empleado empleado = jwtUtil.getEmpleadoFromToken(token.substring(7));
+        
+        if (empleado == null) {
+            return ResponseEntity.ok(ApiResponse.unauthorized("Token inválido"));
         }
+
+        // Validar que el empleado esté activo
+        EmpleadoUtil.validarEmpleadoActivo(empleado);
+
+        return ResponseEntity.ok(ApiResponse.success("Rol validado exitosamente", empleado.getRol().getNombre()));
     }
 
 }

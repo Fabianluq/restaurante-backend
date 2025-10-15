@@ -8,13 +8,13 @@ public class EstadoProductoMapper {
     public static EstadoProductoResponse toResponse(EstadoProducto estadoProducto) {
         return new EstadoProductoResponse(
                 estadoProducto.getId(),
-                estadoProducto.getNombre()
+                estadoProducto.getDescripcion()
         );
     }
 
     public static EstadoProducto toEntity(EstadoProductoRequest request) {
         EstadoProducto estadoProducto = new EstadoProducto();
-        estadoProducto.setNombre(request.getNombre());
+        estadoProducto.setDescripcion(request.getDescripcion());
         return estadoProducto;
     }
 }

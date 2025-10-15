@@ -18,6 +18,7 @@ public class Empleado {
     private String correo;
     private String telefono;
     private String contrasenia;
+    private boolean activo = true;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_rol", nullable = false)

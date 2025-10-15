@@ -15,7 +15,7 @@ public class ProductoMapper {
                 producto.getDescripcion(),
                 producto.getPrecio(),
                 producto.getCategoria().getNombre(),
-                producto.getEstadoProducto().getNombre());
+                producto.getEstadoProducto().getDescripcion());
     }
 
     public static CartaResponse toCartaResponse(Producto producto) {

@@ -8,19 +8,23 @@ import lombok.Setter;
 
 public class DetallePedidoResponse {
     private Long id;
+    private String nombreProducto;
     private int cantidad;
     private double precioUnitario;
-    private String nombreProducto;
+    private double totalDetalle;
     private Long pedidoId;
+    private String estadoDetalle;
 
-    public DetallePedidoResponse() {
-    }
+    public DetallePedidoResponse() {}
 
-    public DetallePedidoResponse(Long id, int cantidad, double precioUnitario, String nombreProducto, Long pedidoId) {
+    public DetallePedidoResponse(Long id, String nombreProducto, int cantidad,
+                                 double precioUnitario, double totalDetalle, Long pedidoId, String estadoDetalle) {
         this.id = id;
+        this.nombreProducto = nombreProducto;
         this.cantidad = cantidad;
         this.precioUnitario = precioUnitario;
-        this.nombreProducto = nombreProducto;
+        this.totalDetalle = totalDetalle;
         this.pedidoId = pedidoId;
+        this.estadoDetalle = estadoDetalle;
     }
 }

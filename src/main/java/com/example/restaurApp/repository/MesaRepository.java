@@ -11,5 +11,5 @@ import java.util.Optional;
 public interface MesaRepository extends JpaRepository<Mesa, Long> {
     Optional<Mesa> findById(Long id);
     List<Mesa> findByEstado_Id(Long estadoId);
-
+    List<Mesa> findByEstado_DescripcionIgnoreCaseAndCapacidadGreaterThanEqual(String descripcion, int capacidad);
 }

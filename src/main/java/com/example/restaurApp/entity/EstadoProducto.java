@@ -9,12 +9,15 @@ import lombok.Setter;
 @Table(name = "estado_producto")
 @Getter
 @Setter
-@AllArgsConstructor
 public class EstadoProducto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String nombre;
+    private String descripcion;
 
     public EstadoProducto() {}
+
+    public EstadoProducto(String descripcion) {
+        this.descripcion = descripcion;
+    }
 }

@@ -13,17 +13,21 @@ public class DetallePedidoMapper {
         detalle.setPedido(pedido);
         detalle.setProducto(producto);
         detalle.setCantidad(request.getCantidad());
-        detalle.setPrecioUnitario(request.getPrecioUnitario());
+        detalle.setPrecioUnitario(producto.getPrecio());
         return detalle;
     }
 
     public static DetallePedidoResponse toResponse(DetallePedido detalle) {
+        double total = detalle.getCantidad() * detalle.getPrecioUnitario();
+
         return new DetallePedidoResponse(
                 detalle.getId(),
+                detalle.getProducto().getNombre(),
                 detalle.getCantidad(),
                 detalle.getPrecioUnitario(),
-                detalle.getProducto().getNombre(),
-                detalle.getPedido().getId()
+                total,
+                detalle.getPedido().getId(),
+                detalle.getEstadoDetalle() != null ? detalle.getEstadoDetalle().getDescripcion() : "Pendiente"
         );
     }
 }

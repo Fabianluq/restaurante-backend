@@ -9,7 +9,7 @@ import java.time.LocalTime;
 @Getter
 @Setter
 public class ReservaResponse {
-    private Long id;
+    private String mensaje;
     private LocalDate fechaReserva;
     private LocalTime horaReserva;
     private int cantidadPersonas;
@@ -18,9 +18,9 @@ public class ReservaResponse {
 
     public ReservaResponse(){}
 
-    public ReservaResponse(Long id, LocalDate fechaReserva, LocalTime horaReserva,
+    public ReservaResponse(String mensaje, LocalDate fechaReserva, LocalTime horaReserva,
                            int cantidadPersonas, String clienteNombre, String estadoReserva) {
-        this.id = id;
+        this.mensaje = mensaje;
         this.fechaReserva = fechaReserva;
         this.horaReserva = horaReserva;
         this.cantidadPersonas = cantidadPersonas;

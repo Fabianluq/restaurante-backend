@@ -1,5 +1,9 @@
 package com.example.restaurApp.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,22 +13,32 @@ import java.time.LocalTime;
 @Getter
 @Setter
 public class ReservaRequest {
+    @NotNull
     private LocalDate fechaReserva;
+    @NotNull
     private LocalTime horaReserva;
+    @Min(1)
     private int cantidadPersonas;
-    private Long clienteId;
-    private Long mesaId;
-    private Long estadoId;
+    @Size(min = 1, max = 60)
+    private String nombreCliente;
+    @Size(min = 1, max = 60)
+    private String apellidoCliente;
+    @Email
+    private String correoCliente;
+    @Size(min = 6, max = 20)
+    private String telefonoCliente;
 
     public ReservaRequest(){}
 
     public ReservaRequest(LocalDate fechaReserva, LocalTime horaReserva,
-                          int cantidadPersonas, Long clienteId, Long mesaId, Long estadoId) {
+                          int cantidadPersonas, String nombreCliente, String apellidoCliente, String correoCliente, String telefonoCliente) {
         this.fechaReserva = fechaReserva;
         this.horaReserva = horaReserva;
         this.cantidadPersonas = cantidadPersonas;
-        this.clienteId = clienteId;
-        this.mesaId = mesaId;
-        this.estadoId = estadoId;
+        this.nombreCliente = nombreCliente;
+        this.apellidoCliente = apellidoCliente;
+        this.correoCliente = correoCliente;
+        this.telefonoCliente = telefonoCliente;
+
     }
 }

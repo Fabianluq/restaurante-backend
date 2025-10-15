@@ -12,6 +12,8 @@ import com.example.restaurApp.repository.EstadoReservaRepository;
 import com.example.restaurApp.repository.MesaRepository;
 import com.example.restaurApp.service.ReservaService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -36,19 +38,14 @@ public class ReservaController {
     }
 
     @PostMapping
-    public ResponseEntity <ReservaResponse> crearReserva(@RequestBody ReservaRequest reservaRequest){
-        Cliente cliente = clienteRepository.findById(reservaRequest.getClienteId())
-                .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
-        Mesa mesa = mesaRepository.findById(reservaRequest.getMesaId())
-                .orElseThrow(() -> new RuntimeException("Mesa no encontrada"));
-        EstadoReserva estadoReserva = estadoReservaRepository.findById(reservaRequest.getEstadoId())
-                .orElseThrow(() -> new RuntimeException("Estado no encontrado"));
-        Reserva reserva = ReservaMapper.toEntity(reservaRequest, cliente, mesa, estadoReserva);
-        Reserva nuevaReserva = reservaService.crearReserva(reserva);
-        return ResponseEntity.ok(ReservaMapper.toResponse(reserva));
+    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
+    public ResponseEntity<ReservaResponse> crearReserva(@Valid @RequestBody ReservaRequest request) {
+        Reserva nuevaReserva = reservaService.crearReserva(request);
+        return ResponseEntity.status(201).body(ReservaMapper.toResponse(nuevaReserva));
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
     public ResponseEntity <List<ReservaResponse>> listarReservas(){
         List<ReservaResponse> reservas = reservaService.listarReservas()
                 .stream()
@@ -57,14 +54,16 @@ public class ReservaController {
         return ResponseEntity.ok(reservas);
     }
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
     public ResponseEntity<ReservaResponse> buscarReservaPorId(@PathVariable Long id){
         return reservaService.buscarReservaPorId(id).map(ReservaMapper::toResponse).map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/estado/{estadoId}")
+    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
     public ResponseEntity<List<ReservaResponse>> buscarReservaPorEstado(@PathVariable Long estadoId){
-        List<ReservaResponse> reservas = reservaService.ListarReservaPorEstado(estadoId)
+        List<ReservaResponse> reservas = reservaService.listarReservaPorEstado(estadoId)
                 .stream()
                 .map(ReservaMapper::toResponse)
                 .toList();
@@ -72,8 +71,9 @@ public class ReservaController {
     }
 
     @GetMapping("/cliente/{clienteId}")
+    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
     public ResponseEntity<List<ReservaResponse>> buscarReservaPorCliente(@PathVariable Long clienteId){
-        List<ReservaResponse> reservas = reservaService.ListarReservaPorCliente(clienteId)
+        List<ReservaResponse> reservas = reservaService.listarReservaPorCliente(clienteId)
                 .stream()
                 .map(ReservaMapper::toResponse)
                 .toList();
@@ -81,9 +81,10 @@ public class ReservaController {
     }
 
     @GetMapping("/buscar")
-    public ResponseEntity <List<ReservaResponse>> ListarPorHoraOFecha(@RequestParam(required = false) LocalDate fecha,
+    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
+    public ResponseEntity <List<ReservaResponse>> listarPorHoraOFecha(@RequestParam(required = false) LocalDate fecha,
                                                                       @RequestParam(required = false) LocalTime hora) {
-        List<ReservaResponse> reservas = reservaService.ListarPorHoraOFecha(fecha,hora)
+        List<ReservaResponse> reservas = reservaService.listarPorHoraOFecha(fecha,hora)
                 .stream()
                 .map(ReservaMapper::toResponse)
                 .toList();
@@ -91,32 +92,40 @@ public class ReservaController {
     }
 
     @PutMapping("/{id}")
-    public  ResponseEntity<ReservaResponse> actualizarReserva(@PathVariable Long id,
-                                                                @RequestBody ReservaRequest reservaRequest){
-        Cliente cliente = clienteRepository.findById(reservaRequest.getClienteId())
-                .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
-        Mesa mesa = mesaRepository.findById(reservaRequest.getMesaId())
-                .orElseThrow(() -> new RuntimeException("Mesa no encontrada"));
-        EstadoReserva estadoReserva = estadoReservaRepository.findById(reservaRequest.getEstadoId())
-                .orElseThrow(() -> new RuntimeException("Estado no encontrado"));
-        Reserva reserva = ReservaMapper.toEntity(reservaRequest, cliente, mesa, estadoReserva);
+    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
+    public ResponseEntity<ReservaResponse> actualizarReserva(@PathVariable Long id, @Valid @RequestBody ReservaRequest request) {
         try {
-            reservaService.actualizarReserva(id, reserva);
-            return ResponseEntity.ok().body(ReservaMapper.toResponse(reserva));
-        }catch (RuntimeException e){
-            return ResponseEntity.notFound().build();
+            Reserva reservaActualizada = reservaService.actualizarReserva(id, request);
+            return ResponseEntity.ok(ReservaMapper.toResponse(reservaActualizada));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(null);
         }
     }
 
-    @DeleteMapping
+    @PutMapping("/{id}/cancelar")
+    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
+    public ResponseEntity<ReservaResponse> cancelarReserva(@PathVariable Long id){
+        try{
+            Reserva reservaCancelada = reservaService.cancelarReserva(id);
+            return ResponseEntity.ok(ReservaMapper.toResponse(reservaCancelada));
+        }catch (RuntimeException e){
+            return ResponseEntity.notFound().build();
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> eliminarReserva(@PathVariable Long id){
         try{
             reservaService.eliminarReserva(id);
             return ResponseEntity.noContent().build();
         }catch (RuntimeException e){
             return ResponseEntity.notFound().build();
+        }catch (Exception e){
+            return ResponseEntity.badRequest().build();
         }
-
     }
 
 }
