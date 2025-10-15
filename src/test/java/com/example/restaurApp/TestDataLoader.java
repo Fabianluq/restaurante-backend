@@ -56,8 +56,8 @@ public abstract class TestDataLoader {
         }
 
         if (empleadoRepository.count() == 0) {
-            Rol mesero = rolRepository.findByNombre("MESERO").orElseThrow();
-            Rol admin = rolRepository.findByNombre("ADMIN").orElseThrow();
+            Rol mesero = rolRepository.findByNombre("MESERO").stream().findFirst().orElseThrow();
+            Rol admin = rolRepository.findByNombre("ADMIN").stream().findFirst().orElseThrow();
             empleadoRepository.saveAll(List.of(
                 crearEmpleado("Ana", "Lopez", "ana@rest.com", mesero),
                 crearEmpleado("Luis", "Diaz", "luis@rest.com", mesero),
