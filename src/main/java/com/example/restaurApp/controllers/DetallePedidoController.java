@@ -2,22 +2,24 @@ package com.example.restaurApp.controllers;
 
 import com.example.restaurApp.dto.DetallePedidoRequest;
 import com.example.restaurApp.dto.DetallePedidoResponse;
+import com.example.restaurApp.dto.ApiResponse;
 import com.example.restaurApp.entity.DetallePedido;
-import com.example.restaurApp.entity.Pedido;
-import com.example.restaurApp.entity.Producto;
+import com.example.restaurApp.excepciones.Validacion;
 import com.example.restaurApp.mapper.DetallePedidoMapper;
 import com.example.restaurApp.repository.PedidoRepository;
 import com.example.restaurApp.repository.ProductoRepository;
 import com.example.restaurApp.service.DetallePedidoService;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/detalles")
+@RequestMapping("/detalles-pedido")
 public class DetallePedidoController {
-
     private final DetallePedidoService detallePedidoService;
     private final PedidoRepository pedidoRepository;
     private final ProductoRepository productoRepository;
@@ -30,68 +32,85 @@ public class DetallePedidoController {
         this.productoRepository = productoRepository;
     }
 
-    @PostMapping
-    public ResponseEntity<DetallePedidoResponse> crearDetalle(@RequestBody DetallePedidoRequest request) {
-        Pedido pedido = pedidoRepository.findById(request.getPedidoId())
-                .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
+    @PostMapping("/{pedidoId}/detalles")
+    @PreAuthorize("hasAnyRole('MESERO','ADMIN')")
+    public ResponseEntity<ApiResponse<DetallePedidoResponse>> agregarProducto(
+            @PathVariable Long pedidoId,
+            @Valid @RequestBody DetallePedidoRequest request,
+            @RequestHeader("Authorization") String authHeader) {
 
-        Producto producto = productoRepository.findById(request.getProductoId())
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
-
-        DetallePedido detalle = DetallePedidoMapper.toEntity(request, pedido, producto);
-        DetallePedido nuevo = detallePedidoService.crearDetalle(detalle);
-
-        return ResponseEntity.status(201).body(DetallePedidoMapper.toResponse(nuevo));
+        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+        DetallePedido nuevoDetalle = detallePedidoService.agregarProducto(pedidoId, request, token);
+        DetallePedidoResponse response = DetallePedidoMapper.toResponse(nuevoDetalle);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created("Producto agregado al pedido exitosamente", response));
     }
 
     @GetMapping
-    public ResponseEntity<List<DetallePedidoResponse>> listarDetalles() {
+    @PreAuthorize("hasAnyRole('ADMIN','MESERO','COCINERO')")
+    public ResponseEntity<ApiResponse<List<DetallePedidoResponse>>> listarDetalles() {
         List<DetallePedidoResponse> detalles = detallePedidoService.listarDetalles()
                 .stream()
                 .map(DetallePedidoMapper::toResponse)
                 .toList();
-        return ResponseEntity.ok(detalles);
+        return ResponseEntity.ok(ApiResponse.success("Detalles listados exitosamente", detalles));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DetallePedidoResponse> buscarPorId(@PathVariable Long id) {
+    @PreAuthorize("hasAnyRole('ADMIN','MESERO','COCINERO')")
+    public ResponseEntity<ApiResponse<DetallePedidoResponse>> buscarPorId(@PathVariable Long id) {
         return detallePedidoService.buscarPorId(id)
                 .map(DetallePedidoMapper::toResponse)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .map(response -> ResponseEntity.ok(ApiResponse.success("Detalle encontrado", response)))
+                .orElse(ResponseEntity.ok(ApiResponse.notFound("Detalle no encontrado")));
     }
 
     @GetMapping("/pedido/{pedidoId}")
-    public ResponseEntity<List<DetallePedidoResponse>> listarPorPedido(@PathVariable Long pedidoId) {
+    @PreAuthorize("hasAnyRole('ADMIN','MESERO','COCINERO')")
+    public ResponseEntity<ApiResponse<List<DetallePedidoResponse>>> listarPorPedido(@PathVariable Long pedidoId) {
         List<DetallePedidoResponse> detalles = detallePedidoService.listarPorPedido(pedidoId)
                 .stream()
                 .map(DetallePedidoMapper::toResponse)
                 .toList();
-        return ResponseEntity.ok(detalles);
+        return ResponseEntity.ok(ApiResponse.success("Detalles del pedido listados exitosamente", detalles));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DetallePedidoResponse> actualizarDetalle(@PathVariable Long id,
-                                                                   @RequestBody DetallePedidoRequest request) {
-        Pedido pedido = pedidoRepository.findById(request.getPedidoId())
-                .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
+    @PreAuthorize("hasAnyRole('MESERO','ADMIN')")
+    public ResponseEntity<ApiResponse<DetallePedidoResponse>> actualizarDetalle(
+            @PathVariable Long id,
+            @Valid @RequestBody DetallePedidoRequest request,
+            @RequestHeader("Authorization") String token) {
 
-        Producto producto = productoRepository.findById(request.getProductoId())
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
-
-        DetallePedido detalle = DetallePedidoMapper.toEntity(request, pedido, producto);
-        DetallePedido actualizado = detallePedidoService.actualizarDetalle(id, detalle);
-
-        return ResponseEntity.ok(DetallePedidoMapper.toResponse(actualizado));
+        String jwtToken = token.replace("Bearer ", "");
+        DetallePedido detalleActualizado = detallePedidoService.actualizarDetalle(id, request, jwtToken);
+        DetallePedidoResponse response = DetallePedidoMapper.toResponse(detalleActualizado);
+        return ResponseEntity.ok(ApiResponse.success("Detalle actualizado exitosamente", response));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarDetalle(@PathVariable Long id) {
-        try {
-            detallePedidoService.eliminarDetalle(id);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+    @PreAuthorize("hasAnyRole('MESERO','ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> eliminarDetalle(
+            @PathVariable Long id,
+            @RequestHeader("Authorization") String token) {
+
+        // Quitar el prefijo "Bearer "
+        String jwt = token.replace("Bearer ", "");
+        detallePedidoService.eliminarDetalle(id, jwt);
+        return ResponseEntity.ok(ApiResponse.success("Detalle eliminado correctamente y total del pedido actualizado", null));
     }
+
+    @PutMapping("/{id}/estado/{estadoDetalleId}")
+    @PreAuthorize("hasAnyRole('COCINERO','ADMIN')")
+    public ResponseEntity<ApiResponse<DetallePedidoResponse>> cambiarEstadoDetalle(
+            @PathVariable Long id,
+            @PathVariable Long estadoDetalleId,
+            @RequestHeader("Authorization") String token) {
+
+        // Quitar el prefijo "Bearer "
+        String jwt = token.replace("Bearer ", "");
+        DetallePedido detalleActualizado = detallePedidoService.cambiarEstadoDetalle(id, estadoDetalleId, jwt);
+        DetallePedidoResponse response = DetallePedidoMapper.toResponse(detalleActualizado);
+        return ResponseEntity.ok(ApiResponse.success("Estado del detalle cambiado exitosamente", response));
+    }
+
 }

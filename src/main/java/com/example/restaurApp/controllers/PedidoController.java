@@ -2,7 +2,9 @@ package com.example.restaurApp.controllers;
 
 import com.example.restaurApp.dto.PedidoRequest;
 import com.example.restaurApp.dto.PedidoResponse;
+import com.example.restaurApp.dto.ApiResponse;
 import com.example.restaurApp.entity.*;
+import com.example.restaurApp.excepciones.Validacion;
 import com.example.restaurApp.mapper.PedidoMapper;
 import com.example.restaurApp.repository.ClienteRepository;
 import com.example.restaurApp.repository.EmpleadoRepository;
@@ -10,10 +12,13 @@ import com.example.restaurApp.repository.EstadoPedidoRepository;
 import com.example.restaurApp.repository.MesaRepository;
 import com.example.restaurApp.service.PedidoService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -39,92 +44,127 @@ public class PedidoController {
     }
 
     @PostMapping
-    public ResponseEntity<PedidoResponse> crearPedido(@RequestBody PedidoRequest request) {
-        EstadoPedido estado = estadoPedidoRepository.findById(request.getEstadoId())
-                .orElseThrow(() -> new RuntimeException("Estado no encontrado"));
-        Empleado empleado = empleadoRepository.findById(request.getEmpleadoId())
-                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
-        Mesa mesa = mesaRepository.findById(request.getMesaId())
-                .orElseThrow(() -> new RuntimeException("Mesa no encontrada"));
-        Cliente cliente = clienteRepository.findById(request.getClienteId())
-                .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
+    @PreAuthorize("hasAnyRole('MESERO','ADMIN')")
+    public ResponseEntity<ApiResponse<PedidoResponse>> crearPedido(
+            @Valid @RequestBody PedidoRequest request,
+            @RequestHeader("Authorization") String token) {
 
-        Pedido pedido = PedidoMapper.toEntity(request, estado, empleado, mesa, cliente);
-        Pedido nuevoPedido = pedidoService.crearPedido(pedido);
+        // El token viene como "Bearer eyJhbGciOiJIUzI1..."
+        token = token.replace("Bearer ", "");
 
-        return ResponseEntity.ok(PedidoMapper.toResponse(nuevoPedido));
+        Pedido nuevoPedido = pedidoService.crearPedido(request, token);
+        PedidoResponse response = PedidoMapper.toResponse(nuevoPedido);
+        return ResponseEntity.status(201).body(ApiResponse.created("Pedido creado exitosamente", response));
     }
 
     @GetMapping
-    public ResponseEntity<List<PedidoResponse>> listarPedidos() {
-        List<PedidoResponse> pedidos = pedidoService.ListarPedidos()
+    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
+    public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPedidos() {
+        List<PedidoResponse> pedidos = pedidoService.listarPedidos()
                 .stream()
                 .map(PedidoMapper::toResponse)
                 .toList();
-        return ResponseEntity.ok(pedidos);
+        return ResponseEntity.ok(ApiResponse.success("Pedidos listados exitosamente", pedidos));
     }
 
     @GetMapping("/estado/{estadoId}")
-    public ResponseEntity<List<PedidoResponse>> listarPorEstado(@PathVariable Long estadoId) {
-        List<PedidoResponse> pedidos = pedidoService.ListarPedidosPorEstado(estadoId)
+    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
+    public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPorEstado(@PathVariable Long estadoId) {
+        List<PedidoResponse> pedidos = pedidoService.listarPedidosPorEstado(estadoId)
                 .stream()
                 .map(PedidoMapper::toResponse)
                 .toList();
-        return ResponseEntity.ok(pedidos);
+        return ResponseEntity.ok(ApiResponse.success("Pedidos listados por estado", pedidos));
     }
 
     @GetMapping("/empleado/{empleadoId}")
-    public ResponseEntity<List<PedidoResponse>> listarPorEmpleado(@PathVariable Long empleadoId) {
-        List<PedidoResponse> pedidos = pedidoService.ListarPedidosPorEmpleado(empleadoId)
+    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
+    public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPorEmpleado(@PathVariable Long empleadoId) {
+        List<PedidoResponse> pedidos = pedidoService.listarPedidosPorEmpleado(empleadoId)
                 .stream()
                 .map(PedidoMapper::toResponse)
                 .toList();
-        return ResponseEntity.ok(pedidos);
+        return ResponseEntity.ok(ApiResponse.success("Pedidos listados por empleado", pedidos));
     }
 
     @GetMapping("/mesa/{mesaId}")
-    public ResponseEntity<List<PedidoResponse>> listarPorMesa(@PathVariable Long mesaId) {
-        List<PedidoResponse> pedidos = pedidoService.ListarPedidosPorMesa(mesaId)
+    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
+    public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPorMesa(@PathVariable Long mesaId) {
+        List<PedidoResponse> pedidos = pedidoService.listarPedidosPorMesa(mesaId)
                 .stream()
                 .map(PedidoMapper::toResponse)
                 .toList();
-        return ResponseEntity.ok(pedidos);
+        return ResponseEntity.ok(ApiResponse.success("Pedidos listados por mesa", pedidos));
     }
 
     @GetMapping("/buscar")
-    public ResponseEntity<List<PedidoResponse>> ListarPorFechaOhoraOEstado(
+    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
+    public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPorFechaOhoraOEstado(
             @RequestParam(required = false) LocalDate fecha,
             @RequestParam(required = false) LocalTime hora,
             @RequestParam(required = false) Long estadoId) {
 
-        List<PedidoResponse> pedidos = pedidoService.ListarPorFechaOhoraOEstado(fecha, hora, estadoId)
+        List<PedidoResponse> pedidos = pedidoService.listarPorFechaOhoraOEstado(fecha, hora, estadoId)
                 .stream()
                 .map(PedidoMapper::toResponse)
                 .toList();
-        return ResponseEntity.ok(pedidos);
+        return ResponseEntity.ok(ApiResponse.success("Pedidos encontrados", pedidos));
+    }
+
+    @GetMapping("/cocina")
+    @PreAuthorize("hasAnyRole('COCINERO','ADMINISTRADOR','ADMIN')")
+    public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPedidosParaCocina(
+            @RequestHeader("Authorization") String token) {
+        // Extraer el token sin el prefijo "Bearer "
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+
+        List<PedidoResponse> pedidos = pedidoService.listarPedidosParaCocina(token);
+        return ResponseEntity.ok(ApiResponse.success("Pedidos para cocina listados exitosamente", pedidos));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PedidoResponse> actualizarPedido(@PathVariable Long id,
-                                                           @RequestBody PedidoRequest request) {
-        EstadoPedido estado = estadoPedidoRepository.findById(request.getEstadoId())
-                .orElseThrow(() -> new RuntimeException("Estado no encontrado"));
-        Empleado empleado = empleadoRepository.findById(request.getEmpleadoId())
-                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
-        Mesa mesa = mesaRepository.findById(request.getMesaId())
-                .orElseThrow(() -> new RuntimeException("Mesa no encontrada"));
-        Cliente cliente = clienteRepository.findById(request.getClienteId())
-                .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
+    @PreAuthorize("hasAnyRole('MESERO','ADMIN')")
+    public ResponseEntity<ApiResponse<PedidoResponse>> actualizarPedido(
+            @PathVariable Long id,
+            @Valid @RequestBody PedidoRequest request,
+            @RequestHeader("Authorization") String token) {
 
-        Pedido pedido = PedidoMapper.toEntity(request, estado, empleado, mesa, cliente);
-        Pedido actualizado = pedidoService.actualizarPedido(id, pedido);
+        // Eliminar el prefijo "Bearer " del token
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
 
-        return ResponseEntity.ok(PedidoMapper.toResponse(actualizado));
+        Pedido pedidoActualizado = pedidoService.actualizarPedido(id, request, token);
+        PedidoResponse response = PedidoMapper.toResponse(pedidoActualizado);
+        return ResponseEntity.ok(ApiResponse.success("Pedido actualizado exitosamente", response));
+    }
+
+    @PutMapping("/{id}/estado/{idEstado}")
+    @PreAuthorize("hasAnyRole('COCINERO','MESERO','ADMIN')")
+    public ResponseEntity<ApiResponse<PedidoResponse>> cambiarEstado(
+            @PathVariable Long id,
+            @PathVariable Long idEstado,
+            @RequestHeader("Authorization") String authHeader) {
+
+        String token = authHeader.replace("Bearer ", "");
+        Pedido pedidoActualizado = pedidoService.cambiarEstado(id, idEstado, token);
+        PedidoResponse response = PedidoMapper.toResponse(pedidoActualizado);
+        return ResponseEntity.ok(ApiResponse.success("Estado del pedido cambiado exitosamente", response));
+    }
+
+    @GetMapping("/{id}/total")
+    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
+    public ResponseEntity<ApiResponse<BigDecimal>> calcularTotalPedido(@PathVariable Long id) {
+        BigDecimal total = pedidoService.calcularTotalPedido(id);
+        return ResponseEntity.ok(ApiResponse.success("Total calculado exitosamente", total));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarPedido(@PathVariable Long id) {
-        pedidoService.eliminarProducto(id);
-        return ResponseEntity.noContent().build();
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> eliminarPedido(@PathVariable Long id) {
+        pedidoService.eliminarPedido(id);
+        return ResponseEntity.ok(ApiResponse.success("Pedido eliminado exitosamente", null));
     }
 }

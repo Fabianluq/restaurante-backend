@@ -2,6 +2,7 @@ package com.example.restaurApp.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -13,6 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
@@ -57,20 +59,27 @@ public class SecurityConfig {
                         // rutas ADMIN
                         .requestMatchers("/empleados/**").hasRole("ADMIN")
                         .requestMatchers("/roles/**").hasRole("ADMIN")
-                        .requestMatchers("/productos/**").hasRole("ADMIN")
-                        .requestMatchers("/categorias/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/productos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/productos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/productos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/categorias/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/categorias/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/categorias/**").hasRole("ADMIN")
                         .requestMatchers("/mesas/**").hasRole("ADMIN")
-                        .requestMatchers("/pedidos/**").hasRole("ADMIN")
-                        .requestMatchers("/reservas/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/pedidos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/reservas/**").hasRole("ADMIN")
 
                         // rutas MESERO
                         .requestMatchers("/api/mesero/**").hasRole("MESERO")
-                        .requestMatchers(HttpMethod.PUT, "/pedidos/{id}").hasRole("MESERO")
-                        .requestMatchers(HttpMethod.GET, "/reservas/**").hasRole("MESERO")
+                        .requestMatchers(HttpMethod.POST, "/pedidos/**").hasAnyRole("MESERO", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/pedidos/{id}").hasAnyRole("MESERO", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/reservas/**").hasAnyRole("MESERO", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/reservas/**").hasAnyRole("MESERO", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/reservas/**").hasAnyRole("MESERO", "ADMIN")
 
                         // rutas COCINA
                         .requestMatchers("/api/cocina/**").hasRole("COCINA")
-                        .requestMatchers(HttpMethod.PUT, "/pedidos/{id}").hasRole("COCINA")
+                        .requestMatchers(HttpMethod.PUT, "/pedidos/{id}/estado/{idEstado}").hasAnyRole("COCINA", "MESERO", "ADMIN")
 
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())

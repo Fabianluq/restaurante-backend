@@ -40,7 +40,34 @@ public class ProductoService {
     }
 
     public List<Producto> listarDisponibles() {
-        return productoRepository.findByEstadoProducto_NombreIgnoreCaseOrderByCategoria_NombreAsc("DISPONIBLE");
+        return productoRepository.findByEstadoProducto_DescripcionIgnoreCaseOrderByCategoria_NombreAsc("Disponible");
+    }
+
+    /**
+     * Valida si un producto está disponible para pedidos
+     */
+    public boolean esProductoDisponible(Long productoId) {
+        return productoRepository.findById(productoId)
+                .map(producto -> producto.getEstadoProducto().getDescripcion().equalsIgnoreCase("Disponible"))
+                .orElse(false);
+    }
+
+    /**
+     * Valida la disponibilidad de múltiples productos
+     */
+    public void validarDisponibilidadProductos(List<Long> productoIds) {
+        List<Producto> productosNoDisponibles = productoRepository.findByIdIn(productoIds)
+                .stream()
+                .filter(producto -> !producto.getEstadoProducto().getDescripcion().equalsIgnoreCase("Disponible"))
+                .toList();
+        
+        if (!productosNoDisponibles.isEmpty()) {
+            String nombresProductos = productosNoDisponibles.stream()
+                    .map(Producto::getNombre)
+                    .reduce((a, b) -> a + ", " + b)
+                    .orElse("");
+            throw new RuntimeException("Los siguientes productos no están disponibles: " + nombresProductos);
+        }
     }
 
     public Producto actualizarProducto(Long id, Producto producto){

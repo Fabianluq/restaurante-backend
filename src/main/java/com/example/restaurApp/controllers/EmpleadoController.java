@@ -3,8 +3,11 @@ package com.example.restaurApp.controllers;
 import com.example.restaurApp.dto.EmpleadoRequest;
 import com.example.restaurApp.dto.EmpleadoResponse;
 import com.example.restaurApp.entity.Empleado;
+import com.example.restaurApp.entity.Mesa;
 import com.example.restaurApp.entity.Rol;
 import com.example.restaurApp.mapper.EmpleadoMapper;
+import com.example.restaurApp.repository.EmpleadoRepository;
+import com.example.restaurApp.repository.MesaRepository;
 import com.example.restaurApp.repository.RolRepository;
 import com.example.restaurApp.service.EmpleadoService;
 
@@ -20,10 +23,13 @@ public class EmpleadoController {
 
     private EmpleadoService empleadoService;
     private RolRepository rolRepository;
+    private MesaRepository mesaRepository;
+    private EmpleadoRepository empleadoRepository;
 
-    public EmpleadoController(EmpleadoService empleadoService, RolRepository rolRepository) {
+    public EmpleadoController(EmpleadoService empleadoService, RolRepository rolRepository, MesaRepository mesaRepository) {
         this.empleadoService = empleadoService;
         this.rolRepository = rolRepository;
+        this.mesaRepository = mesaRepository;
     }
 
     @PostMapping
@@ -100,5 +106,16 @@ public class EmpleadoController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @PutMapping("/mesas/{id}/ocupar")
+    public ResponseEntity<String> ocuparMesa(@PathVariable Long id, @RequestParam Long empleadoId) {
+        try {
+            String mensaje = empleadoService.ocuparMesa(id, empleadoId);
+            return ResponseEntity.ok(mensaje);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 
 }

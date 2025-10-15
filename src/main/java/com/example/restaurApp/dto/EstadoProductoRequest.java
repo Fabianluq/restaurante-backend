@@ -6,13 +6,11 @@ import lombok.Setter;
 @Getter
 @Setter
 public class EstadoProductoRequest {
-    private String nombre;
+    private String descripcion;
 
     public EstadoProductoRequest() {}
 
-    public EstadoProductoRequest(String nombre) {
-        this.nombre = nombre;
+    public EstadoProductoRequest(String descripcion) {
+        this.descripcion = descripcion;
     }
-
-
 }

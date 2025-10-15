@@ -8,5 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface EstadoReservaRepository extends JpaRepository<EstadoReserva, Long> {
-    public Optional<EstadoReserva> findById(Long id);
+    Optional<EstadoReserva> findById(Long id);
+    Optional<EstadoReserva> findByDescripcionIgnoreCase(String estado);
 }

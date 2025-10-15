@@ -1,8 +1,10 @@
 package com.example.restaurApp.service;
 
 import com.example.restaurApp.entity.Empleado;
+import com.example.restaurApp.entity.Mesa;
 import com.example.restaurApp.repository.EmpleadoRepository;
 
+import com.example.restaurApp.repository.MesaRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -13,10 +15,12 @@ import java.util.Optional;
 public class EmpleadoService {
     private EmpleadoRepository empleadoRepository;
     private PasswordEncoder passwordEncoder;
+    private MesaRepository mesaRepository;
 
-    public EmpleadoService(EmpleadoRepository empleadoRepository, PasswordEncoder passwordEncoder) {
+    public EmpleadoService(EmpleadoRepository empleadoRepository, PasswordEncoder passwordEncoder,  MesaRepository mesaRepository) {
         this.empleadoRepository = empleadoRepository;
         this.passwordEncoder = passwordEncoder;
+        this.mesaRepository = mesaRepository;
     }
 
     public Empleado crearEmpleado(Empleado empleado) {
@@ -57,6 +61,27 @@ public class EmpleadoService {
                     return empleadoRepository.save(e);
                 })
                 .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+    }
+
+    public String ocuparMesa(Long mesaId, Long empleadoId) {
+        Mesa mesa = mesaRepository.findById(mesaId)
+                .orElseThrow(() -> new RuntimeException("Mesa no encontrada"));
+
+        Empleado empleado = empleadoRepository.findById(empleadoId)
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+
+        if (!empleado.getRol().getNombre().equalsIgnoreCase("Mesero")) {
+            throw new RuntimeException("Solo los meseros pueden marcar mesas como ocupadas.");
+        }
+
+        if (!mesa.getEstado().getDescripcion().equalsIgnoreCase("Reservada")) {
+            throw new RuntimeException("La mesa no está reservada o ya está ocupada.");
+        }
+
+        mesa.getEstado().setDescripcion("Ocupada");
+        mesaRepository.save(mesa);
+
+        return "Mesa " + mesa.getNumero() + " marcada como ocupada correctamente.";
     }
 
     public void eliminarEmpleado(Long id) {

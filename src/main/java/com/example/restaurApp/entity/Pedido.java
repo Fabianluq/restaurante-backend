@@ -6,6 +6,8 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "pedidos")
@@ -19,7 +21,7 @@ public class Pedido {
     @Column(name = "fecha_pedido", nullable = false)
     private LocalDate fechaPedido;
 
-    @Column(name = "hora_hora", nullable = false)
+    @Column(name = "hora_pedido", nullable = false)
     private LocalTime horaPedido;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -37,6 +39,9 @@ public class Pedido {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name= "id_cliente", nullable = false)
     private Cliente cliente;
+
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DetallePedido> detalles = new ArrayList<>();
 
     public Pedido() {}
 

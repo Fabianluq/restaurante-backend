@@ -7,11 +7,11 @@ import lombok.Setter;
 @Setter
 public class EstadoProductoResponse {
     private Long id;
-    private String nombre;
+    private String descripcion;
 
     public EstadoProductoResponse() {}
-    public EstadoProductoResponse(Long id, String nombre) {
+    public EstadoProductoResponse(Long id, String descripcion) {
         this.id = id;
-        this.nombre = nombre;
+        this.descripcion = descripcion;
     }
 }
