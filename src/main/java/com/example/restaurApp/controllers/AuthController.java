@@ -12,9 +12,12 @@ import com.example.restaurApp.dto.LoginRequest;
 import com.example.restaurApp.dto.LoginResponse;
 import com.example.restaurApp.dto.ApiResponse;
 import com.example.restaurApp.entity.Empleado;
+import com.example.restaurApp.excepciones.EmpleadoInactivoException;
 import com.example.restaurApp.repository.EmpleadoRepository;
 import com.example.restaurApp.security.JwtUtil;
 import com.example.restaurApp.util.EmpleadoUtil;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @RestController
 @RequestMapping("/auth")
@@ -33,31 +36,46 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest req) {
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(req.getCorreo(), req.getContrasenia()));
+        try {
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(req.getCorreo(), req.getContrasenia()));
 
-        Empleado emp = empleadoRepository.findByCorreo(req.getCorreo())
-                .orElseThrow(() -> new RuntimeException("Empleado no encontrado en BD"));
+            Empleado emp = empleadoRepository.findByCorreo(req.getCorreo())
+                    .orElseThrow(() -> new EntityNotFoundException("Empleado no encontrado"));
 
-        // Validar que el empleado esté activo
-        EmpleadoUtil.validarEmpleadoActivo(emp);
+            EmpleadoUtil.validarEmpleadoActivo(emp);
 
-        String token = jwtUtil.generateToken(emp.getCorreo(), emp.getRol().getNombre());
-        LoginResponse response = new LoginResponse(token, emp.getRol().getNombre());
-
-        return ResponseEntity.ok(ApiResponse.success("Login exitoso", response));
+            String token = jwtUtil.generateToken(emp.getCorreo(), emp.getRol().getNombre());
+            LoginResponse response = new LoginResponse(token, emp.getRol().getNombre());
+            return ResponseEntity.ok(ApiResponse.success("Login exitoso", response));
+        } catch (BadCredentialsException ex) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("Credenciales inválidas", HttpStatus.UNAUTHORIZED.value()));
+        } catch (EntityNotFoundException ex) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error(ex.getMessage(), HttpStatus.NOT_FOUND.value()));
+        } catch (EmpleadoInactivoException ex) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(ApiResponse.error(ex.getMessage(), HttpStatus.FORBIDDEN.value()));
+        } catch (Exception ex) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Error interno del servidor", HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
     }
 
     @GetMapping("/validar-rol")
     public ResponseEntity<ApiResponse<String>> validarRol(@RequestHeader("Authorization") String token) {
         String username = jwtUtil.extractUsername(token.substring(7));
         Empleado empleado = jwtUtil.getEmpleadoFromToken(token.substring(7));
-        
+
         if (empleado == null) {
             return ResponseEntity.ok(ApiResponse.unauthorized("Token inválido"));
         }
 
-        // Validar que el empleado esté activo
         EmpleadoUtil.validarEmpleadoActivo(empleado);
 
         return ResponseEntity.ok(ApiResponse.success("Rol validado exitosamente", empleado.getRol().getNombre()));

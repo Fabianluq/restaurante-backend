@@ -1,7 +1,10 @@
 package com.example.restaurApp.util;
 
 import com.example.restaurApp.entity.Empleado;
+import com.example.restaurApp.excepciones.EmpleadoInactivoException;
 import com.example.restaurApp.excepciones.Validacion;
+
+import jakarta.persistence.EntityNotFoundException;
 
 public class EmpleadoUtil {
 
@@ -10,11 +13,10 @@ public class EmpleadoUtil {
      */
     public static void validarEmpleadoActivo(Empleado empleado) {
         if (empleado == null) {
-            throw new Validacion("Empleado no encontrado.");
+            throw new EntityNotFoundException("Empleado no encontrado.");
         }
-
         if (!empleado.isActivo()) {
-            throw new Validacion("El empleado está inactivo y no puede realizar operaciones.");
+            throw new EmpleadoInactivoException("El empleado está inactivo y no puede realizar operaciones.");
         }
     }
 
@@ -30,8 +32,8 @@ public class EmpleadoUtil {
 
         String rolActual = empleado.getRol().getDescripcion();
         if (!rolActual.equalsIgnoreCase(rolRequerido)) {
-            throw new Validacion("Acceso denegado. Se requiere rol: " + rolRequerido + 
-                               ". Rol actual: " + rolActual);
+            throw new Validacion("Acceso denegado. Se requiere rol: " + rolRequerido +
+                    ". Rol actual: " + rolActual);
         }
     }
 
@@ -57,8 +59,8 @@ public class EmpleadoUtil {
 
         if (!tieneRolPermitido) {
             String rolesStr = String.join(", ", rolesPermitidos);
-            throw new Validacion("Acceso denegado. Se requiere uno de los roles: " + rolesStr + 
-                               ". Rol actual: " + rolActual);
+            throw new Validacion("Acceso denegado. Se requiere uno de los roles: " + rolesStr +
+                    ". Rol actual: " + rolActual);
         }
     }
 
@@ -77,8 +79,8 @@ public class EmpleadoUtil {
         boolean tieneRolEspecifico = rolActual.equalsIgnoreCase(rolEspecifico);
 
         if (!esAdmin && !tieneRolEspecifico) {
-            throw new Validacion("Acceso denegado. Se requiere rol ADMINISTRADOR o " + rolEspecifico + 
-                               ". Rol actual: " + rolActual);
+            throw new Validacion("Acceso denegado. Se requiere rol ADMINISTRADOR o " + rolEspecifico +
+                    ". Rol actual: " + rolActual);
         }
     }
 }
