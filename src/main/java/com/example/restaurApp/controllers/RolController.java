@@ -6,6 +6,7 @@ import com.example.restaurApp.entity.Rol;
 import com.example.restaurApp.mapper.RolMapper;
 import com.example.restaurApp.service.RolService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -45,7 +46,7 @@ public class RolController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<RolResponse> actualizarRol(@RequestBody Long id, @RequestBody RolRequest rolRequest) {
+    public ResponseEntity<RolResponse> actualizarRol(@PathVariable Long id, @RequestBody RolRequest rolRequest) {
         Rol rol = RolMapper.toEntity(rolRequest);
         try {
             Rol actualizado = rolService.actualizarRol(id, rol);
@@ -56,7 +57,8 @@ public class RolController {
         }
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> eliminarRol(@PathVariable Long id) {
         try {
             rolService.eliminarRol(id);
