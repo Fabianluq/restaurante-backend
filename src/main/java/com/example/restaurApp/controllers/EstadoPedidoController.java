@@ -19,13 +19,6 @@ public class EstadoPedidoController {
         this.estadoPedidoService = estadoPedidoService;
     }
 
-    @PostMapping
-    public ResponseEntity<EstadoPedidoResponse> crearEstadoPedido(@RequestBody EstadoPedidoRequest estadoPedidoRequest){
-        EstadoPedido estadoPedido = EstadoPedidoMapper.toEntity(estadoPedidoRequest);
-        EstadoPedido nuevoEstadoPedido = estadoPedidoService.crearEstadoPedido(estadoPedido);
-        return ResponseEntity.ok().body(EstadoPedidoMapper.toResponse(nuevoEstadoPedido));
-
-    }
 
     @GetMapping
     public ResponseEntity<List<EstadoPedidoResponse>> listarEstadoPedido(){
@@ -46,24 +39,4 @@ public class EstadoPedidoController {
 
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<EstadoPedidoResponse> actualizarEstadoProducto(@RequestBody Long id, @RequestBody EstadoPedidoRequest estadoPedidoRequest){
-        EstadoPedido estadoPedido = EstadoPedidoMapper.toEntity(estadoPedidoRequest);
-        try {
-            EstadoPedido actualizado = estadoPedidoService.actualizarEstadoPedido(id, estadoPedido);
-            return ResponseEntity.ok(EstadoPedidoMapper.toResponse(actualizado));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    @DeleteMapping
-    public ResponseEntity<Void> eliminarEstadoPedido(@PathVariable Long id){
-        try{
-            estadoPedidoService.eliminarEstadoPedido(id);
-            return ResponseEntity.noContent().build();
-        }catch (RuntimeException e){
-            return ResponseEntity.notFound().build();
-        }
-    }
 }

@@ -18,14 +18,6 @@ public class EstadoProductoController {
         this.estadoProductoService = estadoProductoService;
     }
 
-    @PostMapping
-    public ResponseEntity<EstadoProductoResponse> crearEstadoProducto(@RequestBody EstadoProductoRequest estadoProductoRequest){
-        EstadoProducto estadoProducto = EstadoProductoMapper.toEntity(estadoProductoRequest);
-        EstadoProducto nuevoEstadoProducto = estadoProductoService.crearEstadoProducto(estadoProducto);
-        return ResponseEntity.ok().body(EstadoProductoMapper.toResponse(nuevoEstadoProducto));
-
-    }
-
     @GetMapping
     public ResponseEntity<List<EstadoProductoResponse>> listarEstadoProducto(){
         List<EstadoProductoResponse> estadoProductos = estadoProductoService.ListarEstadoProductos()
@@ -45,25 +37,6 @@ public class EstadoProductoController {
 
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<EstadoProductoResponse> actualizarEstadoProducto(@RequestBody Long id, @RequestBody EstadoProductoRequest estadoProductoRequest){
-        EstadoProducto estadoProducto = EstadoProductoMapper.toEntity(estadoProductoRequest);
-        try {
-            EstadoProducto actualizado = estadoProductoService.actualizarEstadoProducto(id, estadoProducto);
-            return ResponseEntity.ok(EstadoProductoMapper.toResponse(actualizado));
-        } catch (RuntimeException e) {
-        return ResponseEntity.notFound().build();
-        }
-    }
 
-    @DeleteMapping
-    public ResponseEntity<Void> eliminarEstadoProducto(@PathVariable Long id){
-        try{
-            estadoProductoService.eliminarEstadoProducto(id);
-            return ResponseEntity.noContent().build();
-        }catch (RuntimeException e){
-            return ResponseEntity.notFound().build();
-        }
-    }
 
 }

@@ -48,7 +48,7 @@ public class ReporteService {
         }
 
         // Validar que el empleado esté activo y sea administrador
-        EmpleadoUtil.validarRolEmpleado(empleado, "ADMINISTRADOR");
+        EmpleadoUtil.validarRolEmpleado(empleado, "ADMIN");
 
         // Validar fechas
         if (request.getFechaInicio() == null || request.getFechaFin() == null) {

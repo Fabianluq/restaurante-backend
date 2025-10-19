@@ -254,7 +254,7 @@ public class DetallePedidoService {
         EmpleadoUtil.validarEmpleadoActivo(empleado);
 
         String rol = empleado.getRol().getNombre();
-        if (!rol.equalsIgnoreCase("COCINERO") && !rol.equalsIgnoreCase("ADMINISTRADOR")) {
+        if (!rol.equalsIgnoreCase("COCINERO") && !rol.equalsIgnoreCase("ADMIN")) {
             throw new Validacion("Solo los cocineros o administradores pueden cambiar el estado de los detalles.");
         }
 

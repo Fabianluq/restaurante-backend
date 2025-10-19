@@ -75,7 +75,7 @@ public class EmpleadoUtil {
         }
 
         String rolActual = empleado.getRol().getDescripcion();
-        boolean esAdmin = rolActual.equalsIgnoreCase("ADMINISTRADOR");
+        boolean esAdmin = rolActual.equalsIgnoreCase("ADMIN");
         boolean tieneRolEspecifico = rolActual.equalsIgnoreCase(rolEspecifico);
 
         if (!esAdmin && !tieneRolEspecifico) {

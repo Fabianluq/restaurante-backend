@@ -226,7 +226,7 @@ public class PedidoService {
                     }
                     break;
                 case "cancelado":
-                    if (!rol.equalsIgnoreCase("ADMINISTRADOR") && !rol.equalsIgnoreCase("MESERO")) {
+                    if (!rol.equalsIgnoreCase("ADMIN") && !rol.equalsIgnoreCase("MESERO")) {
                         throw new Validacion("Solo el administrador o el mesero pueden cancelar pedidos.");
                     }
                     // Liberar la mesa si aplica
@@ -336,7 +336,7 @@ public class PedidoService {
         EmpleadoUtil.validarEmpleadoActivo(empleado);
 
         String rol = empleado.getRol().getNombre();
-        if (!rol.equalsIgnoreCase("COCINERO") && !rol.equalsIgnoreCase("ADMINISTRADOR")) {
+        if (!rol.equalsIgnoreCase("COCINERO") && !rol.equalsIgnoreCase("ADMIN")) {
             throw new Validacion("Solo los cocineros o administradores pueden acceder a esta vista.");
         }
 

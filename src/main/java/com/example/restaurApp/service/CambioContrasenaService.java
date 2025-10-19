@@ -78,7 +78,7 @@ public class CambioContrasenaService {
         }
 
         // Validar que el administrador esté activo y tenga rol ADMINISTRADOR
-        EmpleadoUtil.validarRolEmpleado(admin, "ADMINISTRADOR");
+        EmpleadoUtil.validarRolEmpleado(admin, "ADMIN");
 
         // Buscar el empleado objetivo
         Empleado empleadoObjetivo = empleadoRepository.findById(empleadoId)
