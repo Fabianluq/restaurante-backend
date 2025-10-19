@@ -6,6 +6,7 @@ import com.example.restaurApp.entity.Cliente;
 import com.example.restaurApp.mapper.ClienteMapper;
 import com.example.restaurApp.service.ClienteService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -56,7 +57,7 @@ public class ClienteController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ClienteResponse> actualizarEmpleado(@PathVariable Long id,
+    public ResponseEntity<ClienteResponse> actualizarCliente(@PathVariable Long id,
                                                               @RequestBody ClienteRequest request) {
 
         Cliente cliente = ClienteMapper.toEntity(request);
@@ -69,6 +70,7 @@ public class ClienteController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> eliminarCliente(@PathVariable Long id) {
         try {
             clienteService.eliminarCliente(id);

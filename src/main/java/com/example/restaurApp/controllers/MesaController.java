@@ -8,6 +8,7 @@ import com.example.restaurApp.mapper.MesaMapper;
 import com.example.restaurApp.repository.EstadoMesaRepository;
 import com.example.restaurApp.service.MesaService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -65,7 +66,8 @@ public class MesaController {
         }
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MesaResponse> eliminarMesa(@PathVariable Long id) {
         try {
             mesaService.eliminarMesa(id);

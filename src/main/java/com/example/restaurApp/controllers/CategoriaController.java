@@ -6,6 +6,7 @@ import com.example.restaurApp.entity.Categoria;
 import com.example.restaurApp.mapper.CategoriaMapper;
 import com.example.restaurApp.service.CategoriaService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,7 +33,7 @@ public class CategoriaController {
                 .stream()
                 .map(CategoriaMapper::toResponse)
                 .toList();
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(categorias);
     }
 
     @GetMapping("/categoria/{nombre}")
@@ -45,7 +46,7 @@ public class CategoriaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CategoriaResponse> actualizarCategoria(@RequestBody Long id,
+    public ResponseEntity<CategoriaResponse> actualizarCategoria(@PathVariable Long id,
             @RequestBody CategoriaRequest categoriaRequest) {
         Categoria categoria = CategoriaMapper.toEntity(categoriaRequest);
         try {
@@ -57,7 +58,8 @@ public class CategoriaController {
         }
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> eliminarCtegoria(@PathVariable Long id) {
         try {
             categoriaService.eliminarCategoria(id);

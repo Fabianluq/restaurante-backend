@@ -99,7 +99,7 @@ public class EstadoPedidoUtil {
                 return Arrays.asList("Entregado", "Cancelado").contains(estadoDestino);
             case "cocinero":
                 return Arrays.asList("En preparación", "Listo").contains(estadoDestino);
-            case "administrador":
+            case "admin":
                 return true; // El administrador puede cambiar a cualquier estado
             default:
                 return false;
@@ -115,7 +115,7 @@ public class EstadoPedidoUtil {
                 return Arrays.asList("Entregado", "Cancelado");
             case "cocinero":
                 return Arrays.asList("En preparación", "Listo");
-            case "administrador":
+            case "admin":
                 return FLUJO_ESTADOS;
             default:
                 return Arrays.asList();

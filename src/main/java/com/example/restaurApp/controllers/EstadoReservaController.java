@@ -20,14 +20,6 @@ public class EstadoReservaController {
         this.estadoReservaService = estadoReservaService;
     }
 
-    @PostMapping
-    public ResponseEntity<EstadoReservaResponse> crearEstadoPedido(@RequestBody EstadoReservaRequest estadoReservaRequest){
-        EstadoReserva estadoReserva = EstadoReservaMapper.toEntity(estadoReservaRequest);
-        EstadoReserva nuevoEstadoPedido = estadoReservaService.crearEstadoReserva(estadoReserva);
-        return ResponseEntity.ok().body(EstadoReservaMapper.toResponse(nuevoEstadoPedido));
-
-    }
-
     @GetMapping
     public ResponseEntity<List<EstadoReservaResponse>> listarEstadoReserva(){
         List<EstadoReservaResponse> estadoPedidos = estadoReservaService.ListarEstadoReserva()
@@ -47,25 +39,5 @@ public class EstadoReservaController {
 
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<EstadoReservaResponse> actualizarEstadoProducto(@RequestBody Long id, @RequestBody EstadoReservaRequest estadoPedidoRequest){
-        EstadoReserva estadoPedido = EstadoReservaMapper.toEntity(estadoPedidoRequest);
-        try {
-            EstadoReserva actualizado = estadoReservaService.actualizarEstadoReserva(id, estadoPedido);
-            return ResponseEntity.ok(EstadoReservaMapper.toResponse(actualizado));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    @DeleteMapping
-    public ResponseEntity<Void> eliminarEstadoReserva(@PathVariable Long id){
-        try{
-            estadoReservaService.eliminarEstadoReserva(id);
-            return ResponseEntity.noContent().build();
-        }catch (RuntimeException e){
-            return ResponseEntity.notFound().build();
-        }
-    }
 }
 

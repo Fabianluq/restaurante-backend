@@ -112,7 +112,7 @@ public class PedidoController {
     }
 
     @GetMapping("/cocina")
-    @PreAuthorize("hasAnyRole('COCINERO','ADMINISTRADOR','ADMIN')")
+    @PreAuthorize("hasAnyRole('COCINERO','ADMIN')")
     public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPedidosParaCocina(
             @RequestHeader("Authorization") String token) {
         // Extraer el token sin el prefijo "Bearer "

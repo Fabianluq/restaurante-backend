@@ -19,13 +19,6 @@ public class EstadoMesaController {
         this.estadoMesaService = estadoMesaService;
     }
 
-    @PostMapping
-    public ResponseEntity<EstadoMesaResponse> crearEstadoMesa(@RequestBody EstadoMesaRequest estadoMesaRequest) {
-        EstadoMesa estadoMesa = EstadoMesaMapper.toEntity(estadoMesaRequest);
-        EstadoMesa nuevoEstadoMesa = estadoMesaService.crearEstadoMesa(estadoMesa);
-        return ResponseEntity.ok().body(EstadoMesaMapper.toResponse(nuevoEstadoMesa));
-
-    }
 
     @GetMapping
     public ResponseEntity<List<EstadoMesaResponse>> listarEstadoMesa() {
@@ -44,28 +37,6 @@ public class EstadoMesaController {
                 .toList();
         return ResponseEntity.ok(estadoMesas);
 
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<EstadoMesaResponse> actualizarEstadoMesa(@RequestBody Long id,
-            @RequestBody EstadoMesaRequest estadoMesaRequest) {
-        EstadoMesa estadoMesa = EstadoMesaMapper.toEntity(estadoMesaRequest);
-        try {
-            EstadoMesa actualizado = estadoMesaService.actualizarEstadoMesa(id, estadoMesa);
-            return ResponseEntity.ok(EstadoMesaMapper.toResponse(actualizado));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    @DeleteMapping
-    public ResponseEntity<Void> eliminarEstadoMesa(@PathVariable Long id) {
-        try {
-            estadoMesaService.eliminarEstadoMesa(id);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
     }
 
 }
