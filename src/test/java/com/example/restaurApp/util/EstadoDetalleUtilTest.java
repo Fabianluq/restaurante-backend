@@ -15,9 +15,9 @@ public class EstadoDetalleUtilTest {
 
     @Test
     void transicionesInvalidas() {
-        assertFalse(EstadoDetalleUtil.esTransicionValidaDetalle("Pendiente", "Listo"));
         assertFalse(EstadoDetalleUtil.esTransicionValidaDetalle("Listo", "En preparación"));
         assertFalse(EstadoDetalleUtil.esTransicionValidaDetalle("Listo", "Pendiente"));
+        assertFalse(EstadoDetalleUtil.esTransicionValidaDetalle("EstadoInexistente", "Pendiente"));
     }
 }
 

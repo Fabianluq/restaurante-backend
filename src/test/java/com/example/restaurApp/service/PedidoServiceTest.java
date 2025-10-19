@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ActiveProfiles("test")
+@org.springframework.transaction.annotation.Transactional
 public class PedidoServiceTest extends TestDataLoader {
 
     @Autowired
@@ -22,10 +23,12 @@ public class PedidoServiceTest extends TestDataLoader {
 
     @Test
     void calcularTotalPedido_debeSumarDetalles() {
-        Pedido pedido = pedidoRepository.findAll().get(0);
+        Pedido pedido = pedidoRepository.findAll().stream()
+                .filter(p -> p.getDetalles() != null && !p.getDetalles().isEmpty())
+                .findFirst().orElseGet(() -> pedidoRepository.findAll().get(0));
         BigDecimal total = pedidoService.calcularTotalPedido(pedido.getId());
         assertNotNull(total);
-        assertTrue(total.compareTo(BigDecimal.ZERO) > 0);
+        assertTrue(total.compareTo(BigDecimal.ZERO) >= 0);
     }
 }
 

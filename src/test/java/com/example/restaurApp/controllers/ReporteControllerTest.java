@@ -1,5 +1,6 @@
 package com.example.restaurApp.controllers;
 
+import com.example.restaurApp.config.TestSecurityConfig;
 import com.example.restaurApp.dto.ReporteVentasRequest;
 import com.example.restaurApp.dto.ReporteVentasResponse;
 import com.example.restaurApp.service.ReporteService;
@@ -8,14 +9,17 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 @WebMvcTest(controllers = ReporteController.class)
+@Import(TestSecurityConfig.class)
 class ReporteControllerTest {
 
     @Autowired
@@ -37,6 +41,7 @@ class ReporteControllerTest {
         mockMvc.perform(post("/reportes/ventas")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", "Bearer token")
+                        .with(csrf())
                         .content(body))
                 .andExpect(status().isOk());
     }
