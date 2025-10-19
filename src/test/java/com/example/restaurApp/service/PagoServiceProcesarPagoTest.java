@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@org.springframework.transaction.annotation.Transactional
 public class PagoServiceProcesarPagoTest extends TestDataLoader {
 
     @Autowired

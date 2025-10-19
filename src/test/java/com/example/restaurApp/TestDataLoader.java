@@ -23,6 +23,7 @@ public abstract class TestDataLoader {
     @Autowired protected EstadoMesaRepository estadoMesaRepository;
     @Autowired protected EstadoDetalleRepository estadoDetalleRepository;
     @Autowired protected EstadoProductoRepository estadoProductoRepository;
+    @Autowired protected CategoriaRepository categoriaRepository;
     @Autowired protected ProductoRepository productoRepository;
     @Autowired protected PedidoRepository pedidoRepository;
     @Autowired protected DetallePedidoRepository detallePedidoRepository;
@@ -89,6 +90,17 @@ public abstract class TestDataLoader {
         }
 
         if (productoRepository.count() == 0) {
+            // Seed categorías si faltan
+            if (categoriaRepository.count() == 0) {
+                categoriaRepository.saveAll(List.of(
+                    new Categoria("Bebidas", "Bebidas frías y calientes"),
+                    new Categoria("Entradas", "Aperitivos y entradas"),
+                    new Categoria("Platos Principales", "Platos principales del menú"),
+                    new Categoria("Postres", "Dulces y postres"),
+                    new Categoria("Sopas", "Sopas y caldos")
+                ));
+            }
+            
             // Seed estados de producto si faltan
             if (estadoProductoRepository.count() == 0) {
                 estadoProductoRepository.saveAll(List.of(
@@ -111,6 +123,7 @@ public abstract class TestDataLoader {
         if (pedidoRepository.count() == 0) {
             Empleado mesero = empleadoRepository.findByCorreo("ana@rest.com").orElseThrow();
             EstadoPedido pendiente = estadoPedidoRepository.findByDescripcionIgnoreCase("Pendiente").orElseThrow();
+            Cliente cliente = clienteRepository.findAll().get(0); // Usar el primer cliente
             if (estadoDetalleRepository.count() == 0) {
                 estadoDetalleRepository.saveAll(List.of(
                     new EstadoDetalle("Pendiente"),
@@ -126,6 +139,7 @@ public abstract class TestDataLoader {
                 p.setHoraPedido(LocalTime.now());
                 p.setEstadoPedido(pendiente);
                 p.setMesa(mesa1);
+                p.setCliente(cliente);
                 pedidoRepository.save(p);
 
                 // detalles
@@ -136,6 +150,7 @@ public abstract class TestDataLoader {
                 d.setCantidad(2);
                 d.setPrecioUnitario(prod.getPrecio());
                 d.setEstadoDetalle(estadoDetalleRepository.findByDescripcionIgnoreCase("Pendiente").orElseThrow());
+                d.setEstadoPedido(pendiente); // Agregar el estado del pedido
                 detallePedidoRepository.save(d);
             }
         }
@@ -156,8 +171,23 @@ public abstract class TestDataLoader {
         Producto p = new Producto();
         p.setNombre(nombre);
         p.setPrecio(precio);
+        p.setDescripcion("Descripción de " + nombre);
         EstadoProducto disp = estadoProductoRepository.findByDescripcionIgnoreCase("DISPONIBLE").orElseThrow();
         p.setEstadoProducto(disp);
+        
+        // Asignar categoría basada en el nombre del producto
+        Categoria categoria;
+        if (nombre.equalsIgnoreCase("Sopa")) {
+            categoria = categoriaRepository.findByNombre("Sopas").get(0);
+        } else if (nombre.equalsIgnoreCase("Jugo") || nombre.equalsIgnoreCase("Cafe")) {
+            categoria = categoriaRepository.findByNombre("Bebidas").get(0);
+        } else if (nombre.equalsIgnoreCase("Postre")) {
+            categoria = categoriaRepository.findByNombre("Postres").get(0);
+        } else {
+            categoria = categoriaRepository.findByNombre("Entradas").get(0);
+        }
+        p.setCategoria(categoria);
+        
         return p;
     }
 }

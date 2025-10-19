@@ -45,7 +45,7 @@ public class AuthController {
 
             EmpleadoUtil.validarEmpleadoActivo(emp);
 
-            String token = jwtUtil.generateToken(emp.getCorreo(), emp.getRol().getNombre());
+            String token = jwtUtil.generateToken(emp.getCorreo(), emp.getRol().getNombre(),emp.getId().toString());
             LoginResponse response = new LoginResponse(token, emp.getRol().getNombre());
             return ResponseEntity.ok(ApiResponse.success("Login exitoso", response));
         } catch (BadCredentialsException ex) {
