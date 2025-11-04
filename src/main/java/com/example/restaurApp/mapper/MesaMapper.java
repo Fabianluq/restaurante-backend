@@ -10,6 +10,7 @@ public class MesaMapper {
        return new MesaResponse(
                mesa.getId(),
                mesa.getCapacidad(),
+               mesa.getNumero(),
                mesa.getEstado().getDescripcion()
        );
     }

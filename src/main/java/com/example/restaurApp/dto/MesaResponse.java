@@ -10,5 +10,6 @@ import lombok.Setter;
 public class MesaResponse {
     private Long id;
     private int capacidad;
+    private int numero;
     private String estado;
 }
