@@ -62,9 +62,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/productos/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/categorias/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/empleados/**").permitAll()
 
                         // rutas ADMIN
-                        .requestMatchers("/empleados/**").hasRole("ADMIN")
                         .requestMatchers("/roles/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/productos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/productos/**").hasRole("ADMIN")

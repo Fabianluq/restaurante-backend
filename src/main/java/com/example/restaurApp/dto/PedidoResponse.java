@@ -16,20 +16,20 @@ public class PedidoResponse {
     private String estado;
     private String empleadoNombre;
     private String clienteNombre;
-    private Integer mesaCapacidad;
+    private Integer mesaNumero;
     private List<DetallePedidoResponse> detalles;
 
     public PedidoResponse() {
     }
 
     public PedidoResponse(Long id, String fechaPedido, String horaPedido, String estado,
-                          String empleadoNombre, String clienteNombre, Integer mesaCapacidad) {
+                          String empleadoNombre, String clienteNombre, Integer mesaNumero) {
         this.id = id;
         this.fechaPedido = fechaPedido;
         this.horaPedido = horaPedido;
         this.estado = estado;
         this.empleadoNombre = empleadoNombre;
         this.clienteNombre = clienteNombre;
-        this.mesaCapacidad = mesaCapacidad;
+        this.mesaNumero = mesaNumero;
     }
 }

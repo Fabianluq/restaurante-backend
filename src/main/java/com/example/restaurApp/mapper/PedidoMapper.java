@@ -29,7 +29,7 @@ public class PedidoMapper {
         response.setClienteNombre(pedido.getCliente() != null
                 ? pedido.getCliente().getNombre() + " " + pedido.getCliente().getApellido()
                 : "No especificado");
-        response.setMesaCapacidad(pedido.getMesa() != null ? pedido.getMesa().getNumero() : null);
+        response.setMesaNumero(pedido.getMesa() != null ? pedido.getMesa().getNumero() : null);
         
         // Mapear los detalles del pedido
         if (pedido.getDetalles() != null && !pedido.getDetalles().isEmpty()) {
