@@ -61,10 +61,9 @@ public class SecurityConfig {
                         .requestMatchers("/clientes/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/productos/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/categorias/**").permitAll()
+                        .requestMatchers("/empleados/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-
                         // rutas ADMIN
-                        .requestMatchers("/empleados/**").hasRole("ADMIN")
                         .requestMatchers("/roles/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/productos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/productos/**").hasRole("ADMIN")
@@ -86,7 +85,8 @@ public class SecurityConfig {
 
                         // rutas COCINA
                         .requestMatchers("/api/cocina/**").hasRole("COCINA")
-                        .requestMatchers(HttpMethod.PUT, "/pedidos/{id}/estado/{idEstado}").hasAnyRole("COCINA", "MESERO", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/pedidos/{id}/estado/{idEstado}")
+                        .hasAnyRole("COCINA", "MESERO", "ADMIN")
 
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
@@ -100,28 +100,28 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        
+
         // Permite cualquier origen (para producción, especifica los dominios exactos)
         configuration.setAllowedOriginPatterns(List.of("*"));
-        
+
         // Métodos HTTP permitidos
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        
+
         // Headers permitidos
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        
+
         // Permite credenciales (cookies, headers de autorización)
         configuration.setAllowCredentials(true);
-        
+
         // Headers expuestos al cliente
         configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
-        
+
         // Tiempo de cache de la configuración CORS (en segundos)
         configuration.setMaxAge(3600L);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
-        
+
         return source;
     }
 
