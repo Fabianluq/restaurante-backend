@@ -4,7 +4,6 @@ import com.example.restaurApp.dto.ApiResponse;
 import com.example.restaurApp.dto.DashboardResponse;
 import com.example.restaurApp.service.DashboardService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,7 +16,6 @@ public class DashboardController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<DashboardResponse>> obtenerDashboard(
             @RequestHeader("Authorization") String token) {
         

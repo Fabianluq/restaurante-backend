@@ -5,7 +5,6 @@ import com.example.restaurApp.dto.ReporteVentasRequest;
 import com.example.restaurApp.dto.ReporteVentasResponse;
 import com.example.restaurApp.service.ReporteService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +18,6 @@ public class ReporteController {
     }
 
     @PostMapping("/ventas")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ReporteVentasResponse>> generarReporteVentas(
             @Valid @RequestBody ReporteVentasRequest request,
             @RequestHeader("Authorization") String token) {
@@ -29,7 +27,6 @@ public class ReporteController {
     }
 
     @GetMapping("/ventas/diario")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ReporteVentasResponse>> generarReporteVentasDiario(
             @RequestHeader("Authorization") String token) {
         
@@ -42,7 +39,6 @@ public class ReporteController {
     }
 
     @GetMapping("/ventas/semanal")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ReporteVentasResponse>> generarReporteVentasSemanal(
             @RequestHeader("Authorization") String token) {
         
@@ -58,7 +54,6 @@ public class ReporteController {
     }
 
     @GetMapping("/ventas/mensual")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ReporteVentasResponse>> generarReporteVentasMensual(
             @RequestHeader("Authorization") String token) {
         

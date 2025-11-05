@@ -5,7 +5,6 @@ import com.example.restaurApp.entity.Reserva;
 import com.example.restaurApp.service.NotificacionService;
 import com.example.restaurApp.service.ReservaService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -22,7 +21,6 @@ public class NotificacionController {
     }
 
     @PostMapping("/reserva/{reservaId}/confirmacion")
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
     public ResponseEntity<ApiResponse<Void>> enviarConfirmacionReserva(
             @PathVariable Long reservaId,
             @RequestHeader("Authorization") String token) {
@@ -38,7 +36,6 @@ public class NotificacionController {
     }
 
     @PostMapping("/enviar")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> enviarNotificacionPersonalizada(
             @RequestParam String destinatario,
             @RequestParam String asunto,

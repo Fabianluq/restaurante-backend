@@ -13,7 +13,6 @@ import com.example.restaurApp.repository.EstadoReservaRepository;
 import com.example.restaurApp.repository.MesaRepository;
 import com.example.restaurApp.service.ReservaService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
@@ -94,14 +93,12 @@ public class ReservaController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
     public ResponseEntity<ReservaResponse> crearReserva(@Valid @RequestBody ReservaRequest request) {
         Reserva nuevaReserva = reservaService.crearReserva(request);
         return ResponseEntity.status(201).body(ReservaMapper.toResponse(nuevaReserva));
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
     public ResponseEntity <List<ReservaResponse>> listarReservas(){
         List<ReservaResponse> reservas = reservaService.listarReservas()
                 .stream()
@@ -110,14 +107,12 @@ public class ReservaController {
         return ResponseEntity.ok(reservas);
     }
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
     public ResponseEntity<ReservaResponse> buscarReservaPorId(@PathVariable Long id){
         return reservaService.buscarReservaPorId(id).map(ReservaMapper::toResponse).map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/estado/{estadoId}")
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
     public ResponseEntity<List<ReservaResponse>> buscarReservaPorEstado(@PathVariable Long estadoId){
         List<ReservaResponse> reservas = reservaService.listarReservaPorEstado(estadoId)
                 .stream()
@@ -127,7 +122,6 @@ public class ReservaController {
     }
 
     @GetMapping("/cliente/{clienteId}")
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
     public ResponseEntity<List<ReservaResponse>> buscarReservaPorCliente(@PathVariable Long clienteId){
         List<ReservaResponse> reservas = reservaService.listarReservaPorCliente(clienteId)
                 .stream()
@@ -137,7 +131,6 @@ public class ReservaController {
     }
 
     @GetMapping("/buscar")
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
     public ResponseEntity <List<ReservaResponse>> listarPorHoraOFecha(@RequestParam(required = false) LocalDate fecha,
                                                                       @RequestParam(required = false) LocalTime hora) {
         List<ReservaResponse> reservas = reservaService.listarPorHoraOFecha(fecha,hora)
@@ -148,7 +141,6 @@ public class ReservaController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
     public ResponseEntity<ReservaResponse> actualizarReserva(@PathVariable Long id, @Valid @RequestBody ReservaRequest request) {
         try {
             Reserva reservaActualizada = reservaService.actualizarReserva(id, request);
@@ -159,7 +151,6 @@ public class ReservaController {
     }
 
     @PutMapping("/{id}/cancelar")
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
     public ResponseEntity<ReservaResponse> cancelarReserva(@PathVariable Long id){
         try{
             Reserva reservaCancelada = reservaService.cancelarReserva(id);
@@ -172,7 +163,6 @@ public class ReservaController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> eliminarReserva(@PathVariable Long id){
         try{
             reservaService.eliminarReserva(id);

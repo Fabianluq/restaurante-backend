@@ -10,7 +10,6 @@ import com.example.restaurApp.repository.PedidoRepository;
 import com.example.restaurApp.repository.ProductoRepository;
 import com.example.restaurApp.service.DetallePedidoService;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +32,6 @@ public class DetallePedidoController {
     }
 
     @PostMapping("/{pedidoId}/detalles")
-    @PreAuthorize("hasAnyRole('MESERO','ADMIN')")
     public ResponseEntity<ApiResponse<DetallePedidoResponse>> agregarProducto(
             @PathVariable Long pedidoId,
             @Valid @RequestBody DetallePedidoRequest request,
@@ -46,7 +44,6 @@ public class DetallePedidoController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO','COCINERO','CAJERO')")
     public ResponseEntity<ApiResponse<List<DetallePedidoResponse>>> listarDetalles() {
         List<DetallePedidoResponse> detalles = detallePedidoService.listarDetalles()
                 .stream()
@@ -56,7 +53,6 @@ public class DetallePedidoController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO','COCINERO','CAJERO')")
     public ResponseEntity<ApiResponse<DetallePedidoResponse>> buscarPorId(@PathVariable Long id) {
         return detallePedidoService.buscarPorId(id)
                 .map(DetallePedidoMapper::toResponse)
@@ -65,7 +61,6 @@ public class DetallePedidoController {
     }
 
     @GetMapping("/pedido/{pedidoId}")
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO','COCINERO','CAJERO')")
     public ResponseEntity<ApiResponse<List<DetallePedidoResponse>>> listarPorPedido(@PathVariable Long pedidoId) {
         List<DetallePedidoResponse> detalles = detallePedidoService.listarPorPedido(pedidoId)
                 .stream()
@@ -75,7 +70,6 @@ public class DetallePedidoController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('MESERO','ADMIN')")
     public ResponseEntity<ApiResponse<DetallePedidoResponse>> actualizarDetalle(
             @PathVariable Long id,
             @Valid @RequestBody DetallePedidoRequest request,
@@ -88,7 +82,6 @@ public class DetallePedidoController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('MESERO','ADMIN')")
     public ResponseEntity<ApiResponse<Void>> eliminarDetalle(
             @PathVariable Long id,
             @RequestHeader("Authorization") String token) {
@@ -100,7 +93,6 @@ public class DetallePedidoController {
     }
 
     @PutMapping("/{id}/estado/{estadoDetalleId}")
-    @PreAuthorize("hasAnyRole('COCINERO','ADMIN')")
     public ResponseEntity<ApiResponse<DetallePedidoResponse>> cambiarEstadoDetalle(
             @PathVariable Long id,
             @PathVariable Long estadoDetalleId,
