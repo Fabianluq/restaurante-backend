@@ -144,7 +144,26 @@ public class PedidoService {
         return pedidoRepository.findByEstadoPedido_Id(estadoId);
     }
 
-    public List<Pedido> listarPedidosPorEmpleado(Long empleadoId){
+    public List<Pedido> listarPedidosPorEmpleado(Long empleadoId, String token){
+        // Si se proporciona token, validar permisos
+        if (token != null && !token.isEmpty()) {
+            String correoEmpleado = jwtUtil.extractUsername(token);
+            Empleado empleadoLogueado = empleadoRepository.findByCorreo(correoEmpleado)
+                    .orElseThrow(() -> new Validacion("Empleado no encontrado."));
+            
+            // Validar que el empleado esté activo
+            EmpleadoUtil.validarEmpleadoActivo(empleadoLogueado);
+            
+            String rol = empleadoLogueado.getRol().getNombre();
+            
+            // Si es MESERO, solo puede ver sus propios pedidos
+            if (rol.equalsIgnoreCase("MESERO")) {
+                if (!empleadoLogueado.getId().equals(empleadoId)) {
+                    throw new Validacion("No puedes ver pedidos de otros empleados. Solo puedes ver tus propios pedidos.");
+                }
+            }
+        }
+        
         return pedidoRepository.findByEmpleado_Id(empleadoId);
     }
     public List<Pedido> listarPedidosPorMesa(Long mesaId){

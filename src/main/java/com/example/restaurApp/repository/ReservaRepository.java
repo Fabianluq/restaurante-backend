@@ -12,6 +12,7 @@ import java.util.List;
 public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     List<Reserva> findByEstadoReserva_Id(Long estadoId);
     List<Reserva> findByCliente_Id(Long clienteId);
+    List<Reserva> findByCliente_Correo(String correo);
     List<Reserva> findByFechaReserva(LocalDate fechaReserva);
     List<Reserva> findByHoraReserva(LocalTime horaReserva);
     List<Reserva> findByFechaReservaAndHoraReserva(LocalDate fechaReserva, LocalTime horaReserva);

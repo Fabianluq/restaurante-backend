@@ -1,5 +1,6 @@
 package com.example.restaurApp.service;
 
+import com.example.restaurApp.dto.DisponibilidadResponse;
 import com.example.restaurApp.dto.ReservaRequest;
 import com.example.restaurApp.entity.*;
 import com.example.restaurApp.excepciones.Validacion;
@@ -7,6 +8,8 @@ import com.example.restaurApp.repository.*;
 import com.example.restaurApp.util.HorarioRestauranteUtil;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -16,19 +19,24 @@ import java.util.Optional;
 
 @Service
 public class ReservaService {
+    private static final Logger logger = LoggerFactory.getLogger(ReservaService.class);
+    
     private ReservaRepository  reservaRepository;
     private EstadoReservaRepository estadoReservaRepository;
     private ClienteRepository clienteRepository;
     private MesaRepository mesaRepository;
     private EstadoMesaRepository estadoMesaRepository;
+    private NotificacionService notificacionService;
 
     public ReservaService(ReservaRepository reservaRepository,  EstadoReservaRepository estadoReservaRepository,
-                          ClienteRepository clienteRepository, MesaRepository mesaRepository, EstadoMesaRepository estadoMesaRepository) {
+                          ClienteRepository clienteRepository, MesaRepository mesaRepository, 
+                          EstadoMesaRepository estadoMesaRepository, NotificacionService notificacionService) {
         this.reservaRepository = reservaRepository;
         this.estadoReservaRepository = estadoReservaRepository;
         this.clienteRepository = clienteRepository;
         this.mesaRepository = mesaRepository;
         this.estadoMesaRepository = estadoMesaRepository;
+        this.notificacionService = notificacionService;
     }
 
     @Scheduled(fixedRate = 600000) // 10 minutos
@@ -343,6 +351,148 @@ public class ReservaService {
             mesaRepository.save(reserva.getMesa());
         }
         
-        return reservaRepository.save(reserva);
+        Reserva reservaCancelada = reservaRepository.save(reserva);
+        
+        // Enviar notificación por email/SMS/WhatsApp
+        try {
+            notificacionService.enviarCancelacionReserva(reservaCancelada);
+        } catch (Exception e) {
+            // Log error pero no fallar la operación
+            logger.error("Error al enviar notificación de cancelación: {}", e.getMessage());
+        }
+        
+        return reservaCancelada;
+    }
+
+    /**
+     * Lista todas las reservas de un cliente por su correo electrónico (público)
+     */
+    public List<Reserva> listarReservasPorCorreo(String correo) {
+        return reservaRepository.findByCliente_Correo(correo);
+    }
+
+    /**
+     * Busca una reserva por ID y valida que pertenezca al correo proporcionado (público)
+     */
+    public Reserva buscarReservaPorIdYCorreo(Long id, String correo) {
+        Reserva reserva = reservaRepository.findById(id)
+                .orElseThrow(() -> new Validacion("Reserva no encontrada."));
+        
+        if (!reserva.getCliente().getCorreo().equalsIgnoreCase(correo)) {
+            throw new Validacion("No tienes permiso para ver esta reserva.");
+        }
+        
+        return reserva;
+    }
+
+    /**
+     * Cancela una reserva pública validando que pertenezca al correo proporcionado
+     */
+    public Reserva cancelarReservaPublica(Long id, String correo) {
+        Reserva reserva = buscarReservaPorIdYCorreo(id, correo);
+        return cancelarReserva(reserva.getId());
+    }
+
+    /**
+     * Confirma una reserva pública validando que pertenezca al correo proporcionado
+     */
+    public Reserva confirmarReservaPublica(Long id, String correo) {
+        Reserva reserva = buscarReservaPorIdYCorreo(id, correo);
+        
+        // Validar que la reserva esté en estado pendiente
+        if (!reserva.getEstadoReserva().getDescripcion().equalsIgnoreCase("Pendiente")) {
+            throw new Validacion("Solo se pueden confirmar reservas pendientes. Estado actual: " + 
+                reserva.getEstadoReserva().getDescripcion());
+        }
+        
+        // Cambiar estado a Confirmada
+        EstadoReserva estadoConfirmada = estadoReservaRepository.findByDescripcionIgnoreCase("Confirmada")
+                .orElseThrow(() -> new Validacion("No se encontró el estado 'Confirmada'."));
+        
+        reserva.setEstadoReserva(estadoConfirmada);
+        Reserva reservaGuardada = reservaRepository.save(reserva);
+        
+        // Enviar notificación por email/SMS/WhatsApp
+        try {
+            notificacionService.enviarConfirmacionReserva(reservaGuardada);
+        } catch (Exception e) {
+            // Log error pero no fallar la operación
+            logger.error("Error al enviar notificación de confirmación: {}", e.getMessage());
+        }
+        
+        return reservaGuardada;
+    }
+
+    /**
+     * Verifica disponibilidad de mesas para una fecha y hora específicas
+     * Retorna true si hay mesas disponibles, false en caso contrario
+     */
+    public DisponibilidadResponse verificarDisponibilidad(LocalDate fecha, LocalTime hora, int cantidadPersonas, Long mesaId) {
+        // Validar horarios de funcionamiento
+        if (!HorarioRestauranteUtil.estaAbierto(fecha, hora)) {
+            return new DisponibilidadResponse(false, "El restaurante no está abierto en ese horario. " + 
+                HorarioRestauranteUtil.getMensajeHorarioFuncionamiento());
+        }
+
+        if (!HorarioRestauranteUtil.puedeHacerReserva(fecha, hora)) {
+            return new DisponibilidadResponse(false, "Las reservas deben hacerse con al menos 2 horas de anticipación y máximo 30 días antes.");
+        }
+
+        // Si se especifica una mesa específica, verificar solo esa mesa
+        if (mesaId != null) {
+            Mesa mesa = mesaRepository.findById(mesaId)
+                    .orElseThrow(() -> new Validacion("Mesa no encontrada."));
+            
+            // Verificar que la mesa esté disponible
+            if (!mesa.getEstado().getDescripcion().equalsIgnoreCase("Disponible")) {
+                return new DisponibilidadResponse(false, "La mesa #" + mesa.getNumero() + " no está disponible.");
+            }
+            
+            // Verificar capacidad
+            if (mesa.getCapacidad() < cantidadPersonas) {
+                return new DisponibilidadResponse(false, "La mesa #" + mesa.getNumero() + " no tiene capacidad suficiente para " + cantidadPersonas + " personas. Capacidad máxima: " + mesa.getCapacidad());
+            }
+            
+            // Verificar si ya hay una reserva en esa fecha y hora
+            boolean existeReserva = reservaRepository.existsByMesa_IdAndFechaReservaAndHoraReserva(
+                    mesaId, fecha, hora);
+            
+            if (existeReserva) {
+                return new DisponibilidadResponse(false, "La mesa #" + mesa.getNumero() + " ya tiene una reserva para ese horario.");
+            }
+            
+            return new DisponibilidadResponse(true, "La mesa #" + mesa.getNumero() + " está disponible.", mesa.getNumero(), mesa.getCapacidad());
+        }
+
+        // Si no se especifica mesa, buscar cualquier mesa disponible
+        List<Mesa> mesasDisponibles = mesaRepository
+                .findByEstado_DescripcionIgnoreCaseAndCapacidadGreaterThanEqual("Disponible", cantidadPersonas);
+
+        if (mesasDisponibles.isEmpty()) {
+            return new DisponibilidadResponse(false, "No hay mesas disponibles para " + cantidadPersonas + " personas.");
+        }
+
+        // Verificar si hay mesas sin reservas en esa fecha/hora
+        List<Mesa> mesasSinReserva = mesasDisponibles.stream()
+                .filter(mesa -> !reservaRepository.existsByMesa_IdAndFechaReservaAndHoraReserva(
+                        mesa.getId(), fecha, hora))
+                .filter(mesa -> mesa.getCapacidad() >= cantidadPersonas)
+                .toList();
+
+        if (mesasSinReserva.isEmpty()) {
+            return new DisponibilidadResponse(false, "No hay mesas disponibles para ese horario. Intenta otro horario.");
+        }
+
+        // Retornar la mesa más pequeña disponible
+        Mesa mesaAsignada = mesasSinReserva.stream()
+                .min((m1, m2) -> Integer.compare(m1.getCapacidad(), m2.getCapacidad()))
+                .orElse(null);
+
+        if (mesaAsignada != null) {
+            return new DisponibilidadResponse(true, "Hay mesas disponibles para " + cantidadPersonas + " personas.", 
+                    mesaAsignada.getNumero(), mesaAsignada.getCapacidad());
+        }
+
+        return new DisponibilidadResponse(false, "No se pudo verificar disponibilidad.");
     }
 }

@@ -22,5 +22,8 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     
     // Buscar pedidos por estados específicos, ordenados por hora del pedido
     List<Pedido> findByEstadoPedido_DescripcionInOrderByHoraPedidoAsc(List<String> estados);
+    
+    // Buscar pedidos por mesa y estados específicos
+    List<Pedido> findByMesa_IdAndEstadoPedido_DescripcionIn(Long mesaId, List<String> estados);
 
 }

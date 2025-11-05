@@ -58,7 +58,7 @@ public class PedidoController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
+    @PreAuthorize("hasAnyRole('ADMIN','COCINERO','MESERO','CAJERO')")
     public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPedidos() {
         List<PedidoResponse> pedidos = pedidoService.listarPedidos()
                 .stream()
@@ -68,7 +68,7 @@ public class PedidoController {
     }
 
     @GetMapping("/estado/{estadoId}")
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
+    @PreAuthorize("hasAnyRole('ADMIN','COCINERO','MESERO','CAJERO')")
     public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPorEstado(@PathVariable Long estadoId) {
         List<PedidoResponse> pedidos = pedidoService.listarPedidosPorEstado(estadoId)
                 .stream()
@@ -79,8 +79,12 @@ public class PedidoController {
 
     @GetMapping("/empleado/{empleadoId}")
     @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
-    public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPorEmpleado(@PathVariable Long empleadoId) {
-        List<PedidoResponse> pedidos = pedidoService.listarPedidosPorEmpleado(empleadoId)
+    public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPorEmpleado(
+            @PathVariable Long empleadoId,
+            @RequestHeader("Authorization") String authHeader) {
+        // Extraer token sin el prefijo "Bearer "
+        String token = authHeader.replace("Bearer ", "");
+        List<PedidoResponse> pedidos = pedidoService.listarPedidosPorEmpleado(empleadoId, token)
                 .stream()
                 .map(PedidoMapper::toResponse)
                 .toList();
@@ -88,7 +92,7 @@ public class PedidoController {
     }
 
     @GetMapping("/mesa/{mesaId}")
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
+    @PreAuthorize("hasAnyRole('ADMIN','COCINERO','MESERO','CAJERO')")
     public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPorMesa(@PathVariable Long mesaId) {
         List<PedidoResponse> pedidos = pedidoService.listarPedidosPorMesa(mesaId)
                 .stream()
@@ -98,7 +102,7 @@ public class PedidoController {
     }
 
     @GetMapping("/buscar")
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
+    @PreAuthorize("hasAnyRole('ADMIN','COCINERO','MESERO','CAJERO')")
     public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPorFechaOhoraOEstado(
             @RequestParam(required = false) LocalDate fecha,
             @RequestParam(required = false) LocalTime hora,
@@ -155,7 +159,7 @@ public class PedidoController {
     }
 
     @GetMapping("/{id}/total")
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
+    @PreAuthorize("hasAnyRole('ADMIN','COCINERO','MESERO','CAJERO')")
     public ResponseEntity<ApiResponse<BigDecimal>> calcularTotalPedido(@PathVariable Long id) {
         BigDecimal total = pedidoService.calcularTotalPedido(id);
         return ResponseEntity.ok(ApiResponse.success("Total calculado exitosamente", total));

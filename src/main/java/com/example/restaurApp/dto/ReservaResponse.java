@@ -9,12 +9,17 @@ import java.time.LocalTime;
 @Getter
 @Setter
 public class ReservaResponse {
+    private Long id;
     private String mensaje;
     private LocalDate fechaReserva;
     private LocalTime horaReserva;
     private int cantidadPersonas;
     private String clienteNombre;
+    private String correoCliente;
+    private String telefonoCliente;
     private String estadoReserva;
+    private Integer mesaNumero;
+    private Long clienteId;
 
     public ReservaResponse(){}
 
@@ -27,8 +32,4 @@ public class ReservaResponse {
         this.clienteNombre = clienteNombre;
         this.estadoReserva = estadoReserva;
     }
-
-
-
-
 }
