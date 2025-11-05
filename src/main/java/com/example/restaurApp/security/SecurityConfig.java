@@ -74,7 +74,10 @@ public class SecurityConfig {
 
                         // Ver estados (todos los roles)
                         .requestMatchers(HttpMethod.GET, "/estados/**").hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/estadoPedido/**").hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
 
+                        // Ver su propio perfil (endpoint específico para usuarios autenticados)
+                        .requestMatchers(HttpMethod.GET, "/auth/me").authenticated()
                         // Ver su propio perfil (todos los autenticados pueden ver su empleado)
                         .requestMatchers(HttpMethod.GET, "/empleados/{id}").authenticated()
 
@@ -100,11 +103,19 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/categorias/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/categorias/**").hasRole("ADMIN")
 
-                        // Gestión de Clientes (CRUD completo)
-                        .requestMatchers("/clientes/**").hasRole("ADMIN")
+                        // Gestión de Clientes - MESEROs pueden ver clientes para crear pedidos
+                        .requestMatchers(HttpMethod.GET, "/clientes").hasAnyRole("ADMIN", "MESERO")
+                        .requestMatchers(HttpMethod.GET, "/clientes/**").hasAnyRole("ADMIN", "MESERO")
+                        .requestMatchers(HttpMethod.POST, "/clientes/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/clientes/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/clientes/**").hasRole("ADMIN")
 
-                        // Gestión de Mesas (CRUD completo)
-                        .requestMatchers("/mesas/**").hasRole("ADMIN")
+                        // Gestión de Mesas - MESEROs pueden ver mesas para gestionar pedidos
+                        .requestMatchers(HttpMethod.GET, "/mesas").hasAnyRole("ADMIN", "MESERO")
+                        .requestMatchers(HttpMethod.GET, "/mesas/**").hasAnyRole("ADMIN", "MESERO")
+                        .requestMatchers(HttpMethod.POST, "/mesas/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/mesas/**").hasAnyRole("ADMIN", "MESERO")
+                        .requestMatchers(HttpMethod.DELETE, "/mesas/**").hasRole("ADMIN")
 
                         // Eliminar pedidos y reservas (solo ADMIN)
                         .requestMatchers(HttpMethod.DELETE, "/pedidos/**").hasRole("ADMIN")
@@ -142,10 +153,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/reservas/**").hasAnyRole("ADMIN", "MESERO")
                         .requestMatchers(HttpMethod.PUT, "/reservas/**").hasAnyRole("ADMIN", "MESERO")
 
-                        // Ver mesas (para ocupar y crear pedidos)
-                        .requestMatchers(HttpMethod.GET, "/mesas").hasAnyRole("ADMIN", "MESERO")
-
-                        // Ocupar mesas
+                        // Ocupar/liberar mesas (ya configurado arriba, pero manteniendo compatibilidad)
                         .requestMatchers(HttpMethod.PUT, "/mesas/{id}/ocupar").hasAnyRole("ADMIN", "MESERO")
                         .requestMatchers(HttpMethod.PUT, "/mesas/{id}/liberar").hasAnyRole("ADMIN", "MESERO")
 

@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.*;
 import com.example.restaurApp.dto.LoginRequest;
 import com.example.restaurApp.dto.LoginResponse;
 import com.example.restaurApp.dto.ApiResponse;
+import com.example.restaurApp.dto.EmpleadoResponse;
 import com.example.restaurApp.entity.Empleado;
 import com.example.restaurApp.excepciones.EmpleadoInactivoException;
+import com.example.restaurApp.mapper.EmpleadoMapper;
 import com.example.restaurApp.repository.EmpleadoRepository;
 import com.example.restaurApp.security.JwtUtil;
 import com.example.restaurApp.util.EmpleadoUtil;
@@ -69,7 +71,6 @@ public class AuthController {
 
     @GetMapping("/validar-rol")
     public ResponseEntity<ApiResponse<String>> validarRol(@RequestHeader("Authorization") String token) {
-        String username = jwtUtil.extractUsername(token.substring(7));
         Empleado empleado = jwtUtil.getEmpleadoFromToken(token.substring(7));
 
         if (empleado == null) {
@@ -79,6 +80,32 @@ public class AuthController {
         EmpleadoUtil.validarEmpleadoActivo(empleado);
 
         return ResponseEntity.ok(ApiResponse.success("Rol validado exitosamente", empleado.getRol().getNombre()));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<EmpleadoResponse>> getCurrentUser(Authentication authentication) {
+        try {
+            String correo = authentication.getName();
+            Empleado empleado = empleadoRepository.findByCorreo(correo)
+                    .orElseThrow(() -> new EntityNotFoundException("Empleado no encontrado"));
+
+            EmpleadoUtil.validarEmpleadoActivo(empleado);
+
+            EmpleadoResponse empleadoResponse = EmpleadoMapper.toResponse(empleado);
+            return ResponseEntity.ok(ApiResponse.success("Perfil obtenido exitosamente", empleadoResponse));
+        } catch (EntityNotFoundException ex) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error(ex.getMessage(), HttpStatus.NOT_FOUND.value()));
+        } catch (EmpleadoInactivoException ex) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(ApiResponse.error(ex.getMessage(), HttpStatus.FORBIDDEN.value()));
+        } catch (Exception ex) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Error interno del servidor", HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        }
     }
 
 }
