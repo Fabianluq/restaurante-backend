@@ -55,9 +55,15 @@ public class PagoService {
         Pedido pedido = pedidoRepository.findById(request.getPedidoId())
             .orElseThrow(() -> new Validacion("Pedido no encontrado."));
 
-        // Validar que el pedido está en estado "Entregado"
-        if (!"Entregado".equals(pedido.getEstadoPedido().getDescripcion())) {
-            throw new Validacion("Solo se puede pagar pedidos en estado 'Entregado'.");
+        // Validar que el pedido está en estado válido para cobrar (LISTO, ENTREGADO, PREPARADO)
+        String estadoPedido = pedido.getEstadoPedido().getDescripcion().toUpperCase();
+        boolean estadoValido = estadoPedido.contains("LISTO") || 
+                              estadoPedido.contains("ENTREGADO") || 
+                              estadoPedido.contains("PREPARADO");
+        
+        if (!estadoValido) {
+            throw new Validacion("Solo se pueden procesar pagos de pedidos que estén LISTOS, ENTREGADOS o PREPARADOS. " +
+                                "Estado actual: " + pedido.getEstadoPedido().getDescripcion());
         }
 
         // Validar que no existe ya un pago para este pedido
@@ -174,10 +180,14 @@ public class PagoService {
         if (pedido.getMesa() != null) {
             Mesa mesa = pedido.getMesa();
             
-            // Verificar que no hay otros pedidos activos en la mesa
-            boolean tieneOtrosPedidosActivos = pedidoRepository.existsByMesa_IdAndEstadoPedido_DescripcionIn(
+            // Verificar que no hay otros pedidos activos en la mesa (excluyendo el pedido actual que ya está pagado)
+            List<Pedido> otrosPedidosActivos = pedidoRepository.findByMesa_IdAndEstadoPedido_DescripcionIn(
                 mesa.getId(), List.of("Pendiente", "En preparación", "Listo", "Entregado")
             );
+            
+            // Filtrar para excluir el pedido actual
+            boolean tieneOtrosPedidosActivos = otrosPedidosActivos.stream()
+                .anyMatch(p -> !p.getId().equals(pedido.getId()));
             
             if (!tieneOtrosPedidosActivos) {
                 EstadoMesa estadoDisponible = estadoMesaRepository.findByDescripcionIgnoreCase("Disponible")

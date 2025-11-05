@@ -37,6 +37,13 @@ public class ReservaController {
         this.reservaService = reservaService;
     }
 
+    // Endpoint público para que los clientes puedan reservar sin autenticación
+    @PostMapping("/publica")
+    public ResponseEntity<ReservaResponse> crearReservaPublica(@Valid @RequestBody ReservaRequest request) {
+        Reserva nuevaReserva = reservaService.crearReserva(request);
+        return ResponseEntity.status(201).body(ReservaMapper.toResponse(nuevaReserva));
+    }
+
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
     public ResponseEntity<ReservaResponse> crearReserva(@Valid @RequestBody ReservaRequest request) {

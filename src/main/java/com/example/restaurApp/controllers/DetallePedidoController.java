@@ -46,7 +46,7 @@ public class DetallePedidoController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO','COCINERO')")
+    @PreAuthorize("hasAnyRole('ADMIN','MESERO','COCINERO','CAJERO')")
     public ResponseEntity<ApiResponse<List<DetallePedidoResponse>>> listarDetalles() {
         List<DetallePedidoResponse> detalles = detallePedidoService.listarDetalles()
                 .stream()
@@ -56,7 +56,7 @@ public class DetallePedidoController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO','COCINERO')")
+    @PreAuthorize("hasAnyRole('ADMIN','MESERO','COCINERO','CAJERO')")
     public ResponseEntity<ApiResponse<DetallePedidoResponse>> buscarPorId(@PathVariable Long id) {
         return detallePedidoService.buscarPorId(id)
                 .map(DetallePedidoMapper::toResponse)
@@ -65,7 +65,7 @@ public class DetallePedidoController {
     }
 
     @GetMapping("/pedido/{pedidoId}")
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO','COCINERO')")
+    @PreAuthorize("hasAnyRole('ADMIN','MESERO','COCINERO','CAJERO')")
     public ResponseEntity<ApiResponse<List<DetallePedidoResponse>>> listarPorPedido(@PathVariable Long pedidoId) {
         List<DetallePedidoResponse> detalles = detallePedidoService.listarPorPedido(pedidoId)
                 .stream()

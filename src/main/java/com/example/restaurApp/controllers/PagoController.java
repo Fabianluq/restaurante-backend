@@ -23,7 +23,7 @@ public class PagoController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('MESERO','ADMIN')")
+    @PreAuthorize("hasAnyRole('CAJERO','ADMIN')")
     public ResponseEntity<ApiResponse<PagoResponse>> procesarPago(
             @Valid @RequestBody PagoRequest request,
             @RequestHeader("Authorization") String token) {
@@ -32,7 +32,7 @@ public class PagoController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','CAJERO')")
     public ResponseEntity<ApiResponse<List<PagoResponse>>> listarPagos(
             @RequestHeader("Authorization") String token) {
         List<PagoResponse> pagos = pagoService.listarPagos(token);
@@ -40,7 +40,7 @@ public class PagoController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','CAJERO')")
     public ResponseEntity<ApiResponse<PagoResponse>> buscarPagoPorId(
             @PathVariable Long id,
             @RequestHeader("Authorization") String token) {
@@ -49,7 +49,7 @@ public class PagoController {
     }
 
     @GetMapping("/pedido/{pedidoId}")
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
+    @PreAuthorize("hasAnyRole('ADMIN','CAJERO')")
     public ResponseEntity<ApiResponse<List<PagoResponse>>> buscarPagosPorPedido(
             @PathVariable Long pedidoId,
             @RequestHeader("Authorization") String token) {

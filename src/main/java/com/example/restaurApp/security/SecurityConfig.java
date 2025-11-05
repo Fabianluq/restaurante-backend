@@ -56,7 +56,6 @@ public class SecurityConfig {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-
                         // ========================================
                         // ENDPOINTS PÚBLICOS
                         // ========================================
@@ -65,100 +64,137 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/auth/resetear-contrasenia").permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/validar-rol").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        
+                        // Reservas públicas (clientes sin autenticación)
+                        .requestMatchers(HttpMethod.POST, "/reservas/publica").permitAll()
 
                         // ========================================
                         // ENDPOINTS COMPARTIDOS (Todos los roles autenticados)
                         // ========================================
                         // Ver menú de productos (todos los roles)
-                        .requestMatchers(HttpMethod.GET, "/productos").hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/productos")
+                        .hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/productos/carta")
+                        .hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/productos/{id}")
+                        .hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/productos/categoria/**")
+                        .hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/productos/estadoProducto/**")
+                        .hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
 
                         // Ver categorías (todos los roles)
-                        .requestMatchers(HttpMethod.GET, "/categorias").hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/categorias")
+                        .hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/categorias/categoria/**")
+                        .hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
 
                         // Ver estados (todos los roles)
-                        .requestMatchers(HttpMethod.GET, "/estados/**").hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
-                        .requestMatchers(HttpMethod.GET, "/estadoPedido/**").hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/estados/**")
+                        .hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/estadoPedido/**")
+                        .hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/estadoMesa/**")
+                        .hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/estadoProducto/**")
+                        .hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
 
                         // Ver su propio perfil (endpoint específico para usuarios autenticados)
                         .requestMatchers(HttpMethod.GET, "/auth/me").authenticated()
+
                         // Cambiar contraseña requiere autenticación
                         .requestMatchers(HttpMethod.PUT, "/auth/cambiar-contrasenia").authenticated()
+
                         // Ver su propio perfil (todos los autenticados pueden ver su empleado)
                         .requestMatchers(HttpMethod.GET, "/empleados/{id}").authenticated()
 
                         // Ver pedidos (cada rol para su trabajo)
-                        .requestMatchers(HttpMethod.GET, "/pedidos/**").hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
+                        // IMPORTANTE: Las reglas específicas deben ir ANTES de las generales
+                        // Primero las específicas con parámetros, luego las generales
+                        .requestMatchers(HttpMethod.GET, "/pedidos/{id}/total")
+                        .hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/pedidos/{id}")
+                        .hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/pedidos/mesa/**")
+                        .hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/pedidos/estado/**")
+                        .hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/pedidos/buscar")
+                        .hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/pedidos/empleado/**")
+                        .hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
+                        // Esta regla general debe ir AL FINAL para evitar conflictos
+                        .requestMatchers(HttpMethod.GET, "/pedidos").hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
 
-                        // ========================================
-                        // ROL: ADMIN - Control Total del Sistema
-                        // ========================================
-                        // Gestión de Empleados (CRUD completo)
-                        .requestMatchers("/empleados/**").hasRole("ADMIN")
-
-                        // Gestión de Roles (CRUD completo)
-                        .requestMatchers("/roles/**").hasRole("ADMIN")
-
-                        // Gestión de Productos (CRUD completo) - POST, PUT, DELETE solo ADMIN
-                        .requestMatchers(HttpMethod.POST, "/productos/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/productos/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/productos/**").hasRole("ADMIN")
-
-                        // Gestión de Categorías (CRUD completo) - POST, PUT, DELETE solo ADMIN
-                        .requestMatchers(HttpMethod.POST, "/categorias/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/categorias/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/categorias/**").hasRole("ADMIN")
-
-                        // Gestión de Clientes - MESEROs pueden ver clientes para crear pedidos
-                        .requestMatchers(HttpMethod.GET, "/clientes").hasAnyRole("ADMIN", "MESERO")
-                        .requestMatchers(HttpMethod.GET, "/clientes/**").hasAnyRole("ADMIN", "MESERO")
-                        .requestMatchers(HttpMethod.POST, "/clientes/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/clientes/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/clientes/**").hasRole("ADMIN")
-
-                        // Gestión de Mesas - MESEROs pueden ver mesas para gestionar pedidos
-                        .requestMatchers(HttpMethod.GET, "/mesas").hasAnyRole("ADMIN", "MESERO")
-                        .requestMatchers(HttpMethod.GET, "/mesas/**").hasAnyRole("ADMIN", "MESERO")
-                        .requestMatchers(HttpMethod.POST, "/mesas/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/mesas/**").hasAnyRole("ADMIN", "MESERO")
-                        .requestMatchers(HttpMethod.DELETE, "/mesas/**").hasRole("ADMIN")
-
-                        // Eliminar pedidos y reservas (solo ADMIN)
-                        .requestMatchers(HttpMethod.DELETE, "/pedidos/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/reservas/**").hasRole("ADMIN")
-
-                        // Ver todos los pagos (para reportes)
-                        .requestMatchers(HttpMethod.GET, "/pagos/**").hasAnyRole("ADMIN", "CAJERO")
-
-                        // Reportes y estadísticas
-                        .requestMatchers("/reportes/**").hasRole("ADMIN")
+                        // Ver detalles de pedido
+                        .requestMatchers(HttpMethod.GET, "/detalles-pedido")
+                        .hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/detalles-pedido/{id}")
+                        .hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/detalles-pedido/pedido/**")
+                        .hasAnyRole("ADMIN", "COCINERO", "MESERO", "CAJERO")
 
                         // ========================================
                         // ROL: COCINERO - Gestión de Cocina
+                        // IMPORTANTE: Reglas específicas ANTES de las generales
                         // ========================================
+                        // Ver pedidos para cocina (endpoint específico)
+                        .requestMatchers(HttpMethod.GET, "/pedidos/cocina").hasAnyRole("ADMIN", "COCINERO")
+
                         // Cambiar estado de pedidos: Pendiente → En Preparación → Listo
-                        .requestMatchers(HttpMethod.PUT, "/pedidos/{id}/estado/{idEstado}").hasAnyRole("ADMIN", "COCINERO")
+                        // COCINERO puede cambiar a "En Preparación" y "Listo"
+                        .requestMatchers(HttpMethod.PUT, "/pedidos/{id}/estado/{idEstado}")
+                        .hasAnyRole("ADMIN", "COCINERO", "MESERO")
+
+                        // Cambiar estado de detalles de pedido
+                        .requestMatchers(HttpMethod.PUT, "/detalles-pedido/{id}/estado/{estadoDetalleId}")
+                        .hasAnyRole("ADMIN", "COCINERO")
 
                         // Endpoints específicos de cocina
                         .requestMatchers("/api/cocina/**").hasAnyRole("ADMIN", "COCINERO")
 
                         // ========================================
                         // ROL: MESERO - Atención al Cliente
+                        // IMPORTANTE: Reglas específicas ANTES de /empleados/** y /mesas/**
                         // ========================================
+                        // Ocupar mesas - CRÍTICO: Debe ir ANTES de /empleados/**
+                        .requestMatchers(HttpMethod.PUT, "/empleados/mesas/**/ocupar").hasAnyRole("ADMIN", "MESERO")
+
                         // Crear nuevos pedidos
                         .requestMatchers(HttpMethod.POST, "/pedidos").hasAnyRole("ADMIN", "MESERO")
 
                         // Actualizar pedidos (para marcar como entregado)
                         .requestMatchers(HttpMethod.PUT, "/pedidos/{id}").hasAnyRole("ADMIN", "MESERO")
 
-                        // Cambiar estado de pedidos a "Entregado"
-                        .requestMatchers(HttpMethod.PUT, "/pedidos/{id}/entregar").hasAnyRole("ADMIN", "MESERO")
+                        // Ver pedidos por empleado (sus propios pedidos) - MESERO y ADMIN
+                        // NOTA: Ya está cubierto arriba en compartidos, pero restringimos PUT/POST aquí
+
+                        // Agregar detalles a un pedido
+                        .requestMatchers(HttpMethod.POST, "/detalles-pedido/{pedidoId}/detalles")
+                        .hasAnyRole("ADMIN", "MESERO")
+
+                        // Actualizar detalles de pedido
+                        .requestMatchers(HttpMethod.PUT, "/detalles-pedido/{id}").hasAnyRole("ADMIN", "MESERO")
 
                         // Gestionar reservas (crear, ver, actualizar)
+                        .requestMatchers(HttpMethod.GET, "/reservas").hasAnyRole("ADMIN", "MESERO")
                         .requestMatchers(HttpMethod.GET, "/reservas/**").hasAnyRole("ADMIN", "MESERO")
+                        .requestMatchers(HttpMethod.POST, "/reservas").hasAnyRole("ADMIN", "MESERO")
                         .requestMatchers(HttpMethod.POST, "/reservas/**").hasAnyRole("ADMIN", "MESERO")
                         .requestMatchers(HttpMethod.PUT, "/reservas/**").hasAnyRole("ADMIN", "MESERO")
 
-                        // Ocupar/liberar mesas (ya configurado arriba, pero manteniendo compatibilidad)
+                        // Ver clientes para crear pedidos
+                        .requestMatchers(HttpMethod.GET, "/clientes").hasAnyRole("ADMIN", "MESERO")
+                        .requestMatchers(HttpMethod.GET, "/clientes/buscar/**").hasAnyRole("ADMIN", "MESERO")
+                        .requestMatchers(HttpMethod.GET, "/clientes/{id}").hasAnyRole("ADMIN", "MESERO")
+
+                        // Ver mesas para gestionar pedidos
+                        .requestMatchers(HttpMethod.GET, "/mesas").hasAnyRole("ADMIN", "MESERO")
+                        .requestMatchers(HttpMethod.GET, "/mesas/{id}").hasAnyRole("ADMIN", "MESERO")
+                        .requestMatchers(HttpMethod.GET, "/mesas/estado/**").hasAnyRole("ADMIN", "MESERO")
+                        .requestMatchers(HttpMethod.PUT, "/mesas/{id}").hasAnyRole("ADMIN", "MESERO")
+
+                        // Ocupar/liberar mesas (alternativos si existen)
                         .requestMatchers(HttpMethod.PUT, "/mesas/{id}/ocupar").hasAnyRole("ADMIN", "MESERO")
                         .requestMatchers(HttpMethod.PUT, "/mesas/{id}/liberar").hasAnyRole("ADMIN", "MESERO")
 
@@ -167,15 +203,69 @@ public class SecurityConfig {
 
                         // ========================================
                         // ROL: CAJERO - Procesamiento de Pagos
+                        // IMPORTANTE: CAJERO necesita ver pedidos para procesar pagos
+                        // NOTA: GET /pedidos ya está permitido arriba en la sección compartida
                         // ========================================
                         // Procesar pagos (crear pago)
                         .requestMatchers(HttpMethod.POST, "/pagos").hasAnyRole("ADMIN", "CAJERO")
+
+                        // Ver todos los pagos
+                        .requestMatchers(HttpMethod.GET, "/pagos").hasAnyRole("ADMIN", "CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/pagos/{id}").hasAnyRole("ADMIN", "CAJERO")
+                        .requestMatchers(HttpMethod.GET, "/pagos/pedido/**").hasAnyRole("ADMIN", "CAJERO")
 
                         // Ver facturas
                         .requestMatchers(HttpMethod.GET, "/facturas/**").hasAnyRole("ADMIN", "CAJERO")
 
                         // Endpoints específicos de cajero
                         .requestMatchers("/api/cajero/**").hasAnyRole("ADMIN", "CAJERO")
+
+                        // ========================================
+                        // ROL: ADMIN - Control Total del Sistema
+                        // IMPORTANTE: Las reglas generales van AL FINAL
+                        // ========================================
+                        // Gestión de Empleados (CRUD completo) - REGLA GENERAL AL FINAL
+                        // Esta regla debe ir DESPUÉS de las específicas como /empleados/mesas/**/ocupar
+                        .requestMatchers("/empleados/**").hasRole("ADMIN")
+
+                        // Gestión de Roles (CRUD completo)
+                        .requestMatchers("/roles/**").hasRole("ADMIN")
+
+                        // Gestión de Productos (CRUD completo) - POST, PUT, DELETE solo ADMIN
+                        .requestMatchers(HttpMethod.POST, "/productos").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/productos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/productos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/productos/**").hasRole("ADMIN")
+
+                        // Gestión de Categorías (CRUD completo) - POST, PUT, DELETE solo ADMIN
+                        .requestMatchers(HttpMethod.POST, "/categorias").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/categorias/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/categorias/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/categorias/**").hasRole("ADMIN")
+
+                        // Gestión de Clientes - CREAR, EDITAR, ELIMINAR solo ADMIN
+                        .requestMatchers(HttpMethod.POST, "/clientes").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/clientes/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/clientes/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/clientes/**").hasRole("ADMIN")
+
+                        // Gestión de Mesas - CREAR, ELIMINAR solo ADMIN
+                        // PUT ya está cubierto arriba para MESERO
+                        .requestMatchers(HttpMethod.POST, "/mesas").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/mesas/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/mesas/**").hasRole("ADMIN")
+
+                        // Eliminar pedidos y reservas (solo ADMIN)
+                        .requestMatchers(HttpMethod.DELETE, "/pedidos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/reservas/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/detalles-pedido/**").hasRole("ADMIN")
+
+                        // Reportes y estadísticas
+                        .requestMatchers("/reportes/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/dashboard").hasRole("ADMIN")
+
+                        // Notificaciones (solo ADMIN)
+                        .requestMatchers("/notificaciones/**").hasRole("ADMIN")
 
                         // ========================================
                         // TODOS LOS DEMÁS ENDPOINTS REQUIEREN AUTENTICACIÓN
