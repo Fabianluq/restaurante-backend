@@ -1,5 +1,6 @@
 package com.example.restaurApp.controllers;
 
+import com.example.restaurApp.dto.DisponibilidadResponse;
 import com.example.restaurApp.dto.ReservaRequest;
 import com.example.restaurApp.dto.ReservaResponse;
 import com.example.restaurApp.entity.Cliente;
@@ -42,6 +43,54 @@ public class ReservaController {
     public ResponseEntity<ReservaResponse> crearReservaPublica(@Valid @RequestBody ReservaRequest request) {
         Reserva nuevaReserva = reservaService.crearReserva(request);
         return ResponseEntity.status(201).body(ReservaMapper.toResponse(nuevaReserva));
+    }
+
+    // Endpoint público para que los clientes vean sus reservas por correo
+    @GetMapping("/publica/cliente")
+    public ResponseEntity<List<ReservaResponse>> listarReservasPorCorreo(@RequestParam String correo) {
+        List<ReservaResponse> reservas = reservaService.listarReservasPorCorreo(correo)
+                .stream()
+                .map(ReservaMapper::toResponse)
+                .toList();
+        return ResponseEntity.ok(reservas);
+    }
+
+    // Endpoint público para que los clientes vean una reserva específica
+    @GetMapping("/publica/{id}")
+    public ResponseEntity<ReservaResponse> buscarReservaPublica(
+            @PathVariable Long id,
+            @RequestParam String correo) {
+        Reserva reserva = reservaService.buscarReservaPorIdYCorreo(id, correo);
+        return ResponseEntity.ok(ReservaMapper.toResponse(reserva));
+    }
+
+    // Endpoint público para que los clientes cancelen sus reservas
+    @PutMapping("/publica/{id}/cancelar")
+    public ResponseEntity<ReservaResponse> cancelarReservaPublica(
+            @PathVariable Long id,
+            @RequestParam String correo) {
+        Reserva reservaCancelada = reservaService.cancelarReservaPublica(id, correo);
+        return ResponseEntity.ok(ReservaMapper.toResponse(reservaCancelada));
+    }
+
+    // Endpoint público para que los clientes confirmen sus reservas
+    @PutMapping("/publica/{id}/confirmar")
+    public ResponseEntity<ReservaResponse> confirmarReservaPublica(
+            @PathVariable Long id,
+            @RequestParam String correo) {
+        Reserva reservaConfirmada = reservaService.confirmarReservaPublica(id, correo);
+        return ResponseEntity.ok(ReservaMapper.toResponse(reservaConfirmada));
+    }
+
+    // Endpoint público para verificar disponibilidad antes de crear reserva
+    @GetMapping("/publica/disponibilidad")
+    public ResponseEntity<DisponibilidadResponse> verificarDisponibilidad(
+            @RequestParam LocalDate fecha,
+            @RequestParam LocalTime hora,
+            @RequestParam int cantidadPersonas,
+            @RequestParam(required = false) Long mesaId) {
+        DisponibilidadResponse disponibilidad = reservaService.verificarDisponibilidad(fecha, hora, cantidadPersonas, mesaId);
+        return ResponseEntity.ok(disponibilidad);
     }
 
     @PostMapping

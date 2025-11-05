@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reserva Confirmada - [[${nombreRestaurante}]]</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #FF7A00 0%, #FF9500 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .header .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .message {
+            background-color: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .details {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #6b7280;
+        }
+        .detail-value {
+            color: #111827;
+            font-weight: 500;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #FF7A00;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+        .button:hover {
+            background-color: #E66A00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="icon">✅</div>
+            <h1>¡Reserva Confirmada!</h1>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">
+                Hola <strong th:text="${nombreCliente}">Cliente</strong>,
+            </div>
+            
+            <div class="message">
+                <p style="margin: 0;">
+                    Tu reserva ha sido <strong>confirmada exitosamente</strong>. 
+                    Estamos emocionados de recibirte en nuestro restaurante.
+                </p>
+            </div>
+            
+            <div class="details">
+                <h2 style="margin-top: 0; color: #111827;">Detalles de tu Reserva</h2>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Número de Reserva:</span>
+                    <span class="detail-value">#<span th:text="${numeroReserva}">123</span></span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Fecha:</span>
+                    <span class="detail-value" th:text="${fechaReserva}">2025-01-15</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Hora:</span>
+                    <span class="detail-value" th:text="${horaReserva}">19:00</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Personas:</span>
+                    <span class="detail-value" th:text="${cantidadPersonas}">2</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Mesa:</span>
+                    <span class="detail-value">#<span th:text="${numeroMesa}">5</span></span>
+                </div>
+            </div>
+            
+            <div style="text-align: center;">
+                <a th:href="${'http://localhost:4200/mis-reservas?correo=' + nombreCliente}" class="button">
+                    Ver mis Reservas
+                </a>
+            </div>
+            
+            <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+                <strong>Importante:</strong> Por favor llega 5 minutos antes de tu hora de reserva. 
+                Si necesitas cancelar o modificar tu reserva, puedes hacerlo desde nuestra página web.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p style="margin: 0;">
+                <strong th:text="${nombreRestaurante}">RestaurApp</strong><br>
+                Gracias por elegirnos. ¡Esperamos verte pronto!
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+

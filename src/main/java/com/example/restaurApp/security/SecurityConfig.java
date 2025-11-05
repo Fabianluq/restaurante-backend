@@ -67,6 +67,9 @@ public class SecurityConfig {
                         
                         // Reservas públicas (clientes sin autenticación)
                         .requestMatchers(HttpMethod.POST, "/reservas/publica").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/reservas/publica/**").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/reservas/publica/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/reservas/publica/disponibilidad").permitAll()
                         
                         // Menú público (clientes pueden ver productos sin autenticación)
                         .requestMatchers(HttpMethod.GET, "/productos").permitAll()

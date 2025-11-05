@@ -1,18 +1,24 @@
 package com.example.restaurApp.controllers;
 
 import com.example.restaurApp.dto.ApiResponse;
+import com.example.restaurApp.entity.Reserva;
 import com.example.restaurApp.service.NotificacionService;
+import com.example.restaurApp.service.ReservaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/notificaciones")
 public class NotificacionController {
     private final NotificacionService notificacionService;
+    private final ReservaService reservaService;
 
-    public NotificacionController(NotificacionService notificacionService) {
+    public NotificacionController(NotificacionService notificacionService, ReservaService reservaService) {
         this.notificacionService = notificacionService;
+        this.reservaService = reservaService;
     }
 
     @PostMapping("/reserva/{reservaId}/confirmacion")
@@ -21,7 +27,13 @@ public class NotificacionController {
             @PathVariable Long reservaId,
             @RequestHeader("Authorization") String token) {
         
-        notificacionService.enviarConfirmacionReserva(reservaId, token);
+        Optional<Reserva> reservaOpt = reservaService.buscarReservaPorId(reservaId);
+        if (reservaOpt.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Reserva no encontrada"));
+        }
+        
+        notificacionService.enviarConfirmacionReserva(reservaOpt.get());
         return ResponseEntity.ok(ApiResponse.success("Email de confirmación enviado exitosamente", null));
     }
 

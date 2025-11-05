@@ -9,7 +9,7 @@ import com.example.restaurApp.entity.Reserva;
 
 public class ReservaMapper {
     public static ReservaResponse toResponse(Reserva reserva){
-        return new ReservaResponse(
+        ReservaResponse response = new ReservaResponse(
                 "Su reserva fue creada exitosamente.",
                 reserva.getFechaReserva(),
                 reserva.getHoraReserva(),
@@ -17,6 +17,15 @@ public class ReservaMapper {
                 reserva.getCliente().getNombre() + " " + reserva.getCliente().getApellido(),
                 reserva.getEstadoReserva().getDescripcion()
         );
+        // Agregar campos adicionales
+        response.setId(reserva.getId());
+        response.setCorreoCliente(reserva.getCliente().getCorreo());
+        response.setTelefonoCliente(reserva.getCliente().getTelefono());
+        response.setClienteId(reserva.getCliente().getId());
+        if (reserva.getMesa() != null) {
+            response.setMesaNumero(reserva.getMesa().getNumero());
+        }
+        return response;
     }
 
     public static Reserva toEntity(ReservaRequest request, Cliente cliente, Mesa mesa, EstadoReserva estadoReserva) {
