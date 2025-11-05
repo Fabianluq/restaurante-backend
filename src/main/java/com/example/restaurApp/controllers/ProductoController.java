@@ -11,7 +11,6 @@ import com.example.restaurApp.repository.CategoriaRepository;
 import com.example.restaurApp.repository.EstadoProductoRepository;
 import com.example.restaurApp.service.ProductoService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -100,7 +99,6 @@ public class ProductoController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> eliminarProducto(@PathVariable Long id){
         try{
             productoService.eliminarProducto(id);

@@ -12,7 +12,6 @@ import com.example.restaurApp.repository.EstadoPedidoRepository;
 import com.example.restaurApp.repository.MesaRepository;
 import com.example.restaurApp.service.PedidoService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,7 +43,6 @@ public class PedidoController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('MESERO','ADMIN')")
     public ResponseEntity<ApiResponse<PedidoResponse>> crearPedido(
             @Valid @RequestBody PedidoRequest request,
             @RequestHeader("Authorization") String token) {
@@ -58,7 +56,6 @@ public class PedidoController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','COCINERO','MESERO','CAJERO')")
     public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPedidos() {
         List<PedidoResponse> pedidos = pedidoService.listarPedidos()
                 .stream()
@@ -68,7 +65,6 @@ public class PedidoController {
     }
 
     @GetMapping("/estado/{estadoId}")
-    @PreAuthorize("hasAnyRole('ADMIN','COCINERO','MESERO','CAJERO')")
     public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPorEstado(@PathVariable Long estadoId) {
         List<PedidoResponse> pedidos = pedidoService.listarPedidosPorEstado(estadoId)
                 .stream()
@@ -78,7 +74,6 @@ public class PedidoController {
     }
 
     @GetMapping("/empleado/{empleadoId}")
-    @PreAuthorize("hasAnyRole('ADMIN','MESERO')")
     public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPorEmpleado(
             @PathVariable Long empleadoId,
             @RequestHeader("Authorization") String authHeader) {
@@ -92,7 +87,6 @@ public class PedidoController {
     }
 
     @GetMapping("/mesa/{mesaId}")
-    @PreAuthorize("hasAnyRole('ADMIN','COCINERO','MESERO','CAJERO')")
     public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPorMesa(@PathVariable Long mesaId) {
         List<PedidoResponse> pedidos = pedidoService.listarPedidosPorMesa(mesaId)
                 .stream()
@@ -102,7 +96,6 @@ public class PedidoController {
     }
 
     @GetMapping("/buscar")
-    @PreAuthorize("hasAnyRole('ADMIN','COCINERO','MESERO','CAJERO')")
     public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPorFechaOhoraOEstado(
             @RequestParam(required = false) LocalDate fecha,
             @RequestParam(required = false) LocalTime hora,
@@ -116,7 +109,6 @@ public class PedidoController {
     }
 
     @GetMapping("/cocina")
-    @PreAuthorize("hasAnyRole('COCINERO','ADMIN')")
     public ResponseEntity<ApiResponse<List<PedidoResponse>>> listarPedidosParaCocina(
             @RequestHeader("Authorization") String token) {
         // Extraer el token sin el prefijo "Bearer "
@@ -129,7 +121,6 @@ public class PedidoController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('MESERO','ADMIN')")
     public ResponseEntity<ApiResponse<PedidoResponse>> actualizarPedido(
             @PathVariable Long id,
             @Valid @RequestBody PedidoRequest request,
@@ -146,27 +137,27 @@ public class PedidoController {
     }
 
     @PutMapping("/{id}/estado/{idEstado}")
-    @PreAuthorize("hasAnyRole('COCINERO','MESERO','ADMIN')")
     public ResponseEntity<ApiResponse<PedidoResponse>> cambiarEstado(
             @PathVariable Long id,
             @PathVariable Long idEstado,
-            @RequestHeader("Authorization") String authHeader) {
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
 
-        String token = authHeader.replace("Bearer ", "");
+        // MVP: Token opcional para permitir cambios sin autenticación
+        String token = (authHeader != null && authHeader.startsWith("Bearer ")) 
+            ? authHeader.replace("Bearer ", "") 
+            : null;
         Pedido pedidoActualizado = pedidoService.cambiarEstado(id, idEstado, token);
         PedidoResponse response = PedidoMapper.toResponse(pedidoActualizado);
         return ResponseEntity.ok(ApiResponse.success("Estado del pedido cambiado exitosamente", response));
     }
 
     @GetMapping("/{id}/total")
-    @PreAuthorize("hasAnyRole('ADMIN','COCINERO','MESERO','CAJERO')")
     public ResponseEntity<ApiResponse<BigDecimal>> calcularTotalPedido(@PathVariable Long id) {
         BigDecimal total = pedidoService.calcularTotalPedido(id);
         return ResponseEntity.ok(ApiResponse.success("Total calculado exitosamente", total));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> eliminarPedido(@PathVariable Long id) {
         pedidoService.eliminarPedido(id);
         return ResponseEntity.ok(ApiResponse.success("Pedido eliminado exitosamente", null));

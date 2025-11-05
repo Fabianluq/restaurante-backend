@@ -269,12 +269,24 @@ public class PedidoService {
 
     @Transactional
     public Pedido cambiarEstado(Long idPedido, Long idNuevoEstado, String token) {
-        String correoEmpleado = jwtUtil.extractUsername(token);
-        Empleado empleado = empleadoRepository.findByCorreo(correoEmpleado)
-                .orElseThrow(() -> new Validacion("Empleado no encontrado."));
-
-        // Validar que el empleado esté activo
-        EmpleadoUtil.validarEmpleadoActivo(empleado);
+        // MVP: Token opcional - si no hay token, saltamos validaciones de empleado/rol
+        Empleado empleado = null;
+        String rol = "ADMIN"; // Rol por defecto para MVP
+        
+        if (token != null && !token.isEmpty()) {
+            try {
+                String correoEmpleado = jwtUtil.extractUsername(token);
+                empleado = empleadoRepository.findByCorreo(correoEmpleado).orElse(null);
+                if (empleado != null) {
+                    // Validar que el empleado esté activo
+                    EmpleadoUtil.validarEmpleadoActivo(empleado);
+                    rol = empleado.getRol().getNombre();
+                }
+            } catch (Exception e) {
+                // Token inválido, continuar sin validaciones de empleado
+                System.out.println("Token inválido o no proporcionado, continuando sin validación de empleado: " + e.getMessage());
+            }
+        }
 
         Pedido pedido = pedidoRepository.findById(idPedido)
                 .orElseThrow(() -> new Validacion("Pedido no encontrado."));
@@ -284,7 +296,6 @@ public class PedidoService {
 
         String estadoActual = pedido.getEstadoPedido().getDescripcion();
         String estadoDestino = nuevoEstado.getDescripcion();
-        String rol = empleado.getRol().getNombre();
 
         // Validar que no sea un estado final
         if (EstadoPedidoUtil.esEstadoFinal(estadoActual)) {
@@ -297,18 +308,23 @@ public class PedidoService {
                 "'. " + EstadoPedidoUtil.getMensajeFlujoEstados());
         }
 
-        // Validar permisos del rol
-        if (!EstadoPedidoUtil.rolPuedeCambiarEstado(rol, estadoDestino)) {
-            throw new Validacion("El rol '" + rol + "' no puede cambiar el estado a '" + estadoDestino + 
-                "'. Estados disponibles: " + EstadoPedidoUtil.getEstadosDisponiblesParaRol(rol));
-        }
-        
-        // Validar que el mesero solo pueda modificar sus propios pedidos
-        if (rol.equalsIgnoreCase("MESERO")) {
-            if (!pedido.getEmpleado().getCorreo().equalsIgnoreCase(correoEmpleado)) {
-                throw new Validacion("Solo puedes modificar pedidos que hayas creado tú mismo.");
+        // MVP: Solo validar permisos del rol si hay empleado autenticado
+        if (empleado != null) {
+            // Validar permisos del rol
+            if (!EstadoPedidoUtil.rolPuedeCambiarEstado(rol, estadoDestino)) {
+                throw new Validacion("El rol '" + rol + "' no puede cambiar el estado a '" + estadoDestino + 
+                    "'. Estados disponibles: " + EstadoPedidoUtil.getEstadosDisponiblesParaRol(rol));
+            }
+            
+            // Validar que el mesero solo pueda modificar sus propios pedidos
+            if (rol.equalsIgnoreCase("MESERO")) {
+                String correoEmpleado = empleado.getCorreo();
+                if (!pedido.getEmpleado().getCorreo().equalsIgnoreCase(correoEmpleado)) {
+                    throw new Validacion("Solo puedes modificar pedidos que hayas creado tú mismo.");
+                }
             }
         }
+        
         // Validar contenido del pedido antes de preparación
         if (estadoDestino.equalsIgnoreCase("En preparación") && pedido.getDetalles().isEmpty()) {
             throw new Validacion("No se puede poner en preparación un pedido sin productos.");

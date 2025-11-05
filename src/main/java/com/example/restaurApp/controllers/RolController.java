@@ -6,7 +6,6 @@ import com.example.restaurApp.entity.Rol;
 import com.example.restaurApp.mapper.RolMapper;
 import com.example.restaurApp.service.RolService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -58,7 +57,6 @@ public class RolController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> eliminarRol(@PathVariable Long id) {
         try {
             rolService.eliminarRol(id);
