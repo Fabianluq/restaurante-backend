@@ -60,7 +60,10 @@ public class SecurityConfig {
                         // ========================================
                         // ENDPOINTS PÚBLICOS
                         // ========================================
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/recuperar-contrasenia").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/resetear-contrasenia").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/auth/validar-rol").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
                         // ========================================
@@ -78,6 +81,8 @@ public class SecurityConfig {
 
                         // Ver su propio perfil (endpoint específico para usuarios autenticados)
                         .requestMatchers(HttpMethod.GET, "/auth/me").authenticated()
+                        // Cambiar contraseña requiere autenticación
+                        .requestMatchers(HttpMethod.PUT, "/auth/cambiar-contrasenia").authenticated()
                         // Ver su propio perfil (todos los autenticados pueden ver su empleado)
                         .requestMatchers(HttpMethod.GET, "/empleados/{id}").authenticated()
 

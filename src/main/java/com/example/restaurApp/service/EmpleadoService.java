@@ -101,4 +101,14 @@ public class EmpleadoService {
         }
         empleadoRepository.deleteById(id);
     }
+
+    public void cambiarContrasenia(Long empleadoId, String nuevaContrasenia) {
+        Empleado empleado = empleadoRepository.findById(empleadoId)
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+        
+        String hashedPassword = passwordEncoder.encode(nuevaContrasenia);
+        empleado.setContrasenia(hashedPassword);
+        
+        empleadoRepository.save(empleado);
+    }
 }
