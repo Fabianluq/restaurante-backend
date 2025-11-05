@@ -67,6 +67,11 @@ public class SecurityConfig {
                         
                         // Reservas públicas (clientes sin autenticación)
                         .requestMatchers(HttpMethod.POST, "/reservas/publica").permitAll()
+                        
+                        // Menú público (clientes pueden ver productos sin autenticación)
+                        .requestMatchers(HttpMethod.GET, "/productos").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/productos/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/categorias").permitAll()
 
                         // ========================================
                         // ENDPOINTS COMPARTIDOS (Todos los roles autenticados)
