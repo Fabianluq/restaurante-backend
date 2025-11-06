@@ -275,11 +275,11 @@ public class PedidoService {
         
         if (token != null && !token.isEmpty()) {
             try {
-                String correoEmpleado = jwtUtil.extractUsername(token);
+        String correoEmpleado = jwtUtil.extractUsername(token);
                 empleado = empleadoRepository.findByCorreo(correoEmpleado).orElse(null);
                 if (empleado != null) {
-                    // Validar que el empleado esté activo
-                    EmpleadoUtil.validarEmpleadoActivo(empleado);
+        // Validar que el empleado esté activo
+        EmpleadoUtil.validarEmpleadoActivo(empleado);
                     rol = empleado.getRol().getNombre();
                 }
             } catch (Exception e) {
@@ -297,30 +297,44 @@ public class PedidoService {
         String estadoActual = pedido.getEstadoPedido().getDescripcion();
         String estadoDestino = nuevoEstado.getDescripcion();
 
+        // Log para debugging
+        System.out.println("Cambiando estado del pedido " + idPedido + " de '" + estadoActual + "' a '" + estadoDestino + "'");
+
         // Validar que no sea un estado final
         if (EstadoPedidoUtil.esEstadoFinal(estadoActual)) {
             throw new Validacion("No se puede modificar un pedido que ya fue " + estadoActual + ".");
         }
 
-        // Validar transición de estado
+        // MVP: Validar transición de estado (pero ser más permisivo)
+        // Solo rechazar si es un estado claramente inválido
         if (!EstadoPedidoUtil.esTransicionValida(estadoActual, estadoDestino)) {
-            throw new Validacion("No se puede cambiar de '" + estadoActual + "' a '" + estadoDestino + 
-                "'. " + EstadoPedidoUtil.getMensajeFlujoEstados());
+            // MVP: Permitir transiciones incluso si no son estrictamente válidas según el flujo
+            // Solo rechazar si el estado destino es "Cancelado" o "Pagado" desde un estado avanzado
+            boolean esEstadoFinal = estadoDestino.equalsIgnoreCase("Cancelado") || estadoDestino.equalsIgnoreCase("Pagado");
+            boolean esEstadoAvanzado = estadoActual.equalsIgnoreCase("Listo") || estadoActual.equalsIgnoreCase("Entregado");
+            
+            if (esEstadoFinal && esEstadoAvanzado && !estadoActual.equalsIgnoreCase(estadoDestino)) {
+                // No permitir volver a Cancelado o Pagado desde estados avanzados
+                throw new Validacion("No se puede cambiar de '" + estadoActual + "' a '" + estadoDestino + 
+                    "'. " + EstadoPedidoUtil.getMensajeFlujoEstados());
+            }
+            // Si no es un caso problemático, permitir la transición para MVP
+            System.out.println("ADVERTENCIA: Transición no válida permitida para MVP: '" + estadoActual + "' -> '" + estadoDestino + "'");
         }
 
         // MVP: Solo validar permisos del rol si hay empleado autenticado
         if (empleado != null) {
-            // Validar permisos del rol
-            if (!EstadoPedidoUtil.rolPuedeCambiarEstado(rol, estadoDestino)) {
-                throw new Validacion("El rol '" + rol + "' no puede cambiar el estado a '" + estadoDestino + 
-                    "'. Estados disponibles: " + EstadoPedidoUtil.getEstadosDisponiblesParaRol(rol));
-            }
-            
-            // Validar que el mesero solo pueda modificar sus propios pedidos
-            if (rol.equalsIgnoreCase("MESERO")) {
+        // Validar permisos del rol
+        if (!EstadoPedidoUtil.rolPuedeCambiarEstado(rol, estadoDestino)) {
+            throw new Validacion("El rol '" + rol + "' no puede cambiar el estado a '" + estadoDestino + 
+                "'. Estados disponibles: " + EstadoPedidoUtil.getEstadosDisponiblesParaRol(rol));
+        }
+        
+        // Validar que el mesero solo pueda modificar sus propios pedidos
+        if (rol.equalsIgnoreCase("MESERO")) {
                 String correoEmpleado = empleado.getCorreo();
-                if (!pedido.getEmpleado().getCorreo().equalsIgnoreCase(correoEmpleado)) {
-                    throw new Validacion("Solo puedes modificar pedidos que hayas creado tú mismo.");
+            if (!pedido.getEmpleado().getCorreo().equalsIgnoreCase(correoEmpleado)) {
+                throw new Validacion("Solo puedes modificar pedidos que hayas creado tú mismo.");
                 }
             }
         }
