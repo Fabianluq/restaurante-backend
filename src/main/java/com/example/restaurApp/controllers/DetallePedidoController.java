@@ -35,9 +35,12 @@ public class DetallePedidoController {
     public ResponseEntity<ApiResponse<DetallePedidoResponse>> agregarProducto(
             @PathVariable Long pedidoId,
             @Valid @RequestBody DetallePedidoRequest request,
-            @RequestHeader("Authorization") String authHeader) {
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
 
-        String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+        // MVP: Token opcional
+        String token = (authHeader != null && authHeader.startsWith("Bearer ")) 
+            ? authHeader.substring(7) 
+            : (authHeader != null ? authHeader : "");
         DetallePedido nuevoDetalle = detallePedidoService.agregarProducto(pedidoId, request, token);
         DetallePedidoResponse response = DetallePedidoMapper.toResponse(nuevoDetalle);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created("Producto agregado al pedido exitosamente", response));
