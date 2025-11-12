@@ -39,14 +39,23 @@ public class DetallePedidoService {
     }
     @Transactional
     public DetallePedido agregarProducto(Long pedidoId, DetallePedidoRequest request, String token) {
-        //Obtener empleado desde token ANTES de cualquier operación de BD
-        String correoEmpleado = jwtUtil.extractUsername(token);
-        Empleado empleado = empleadoRepository.findByCorreo(correoEmpleado)
-                .orElseThrow(() -> new Validacion("Empleado no encontrado."));
-
-        //Validar rol
-        if (!empleado.getRol().getNombre().equalsIgnoreCase("Mesero")) {
-            throw new Validacion("Solo los meseros pueden agregar productos a un pedido.");
+        // MVP: Token opcional - si no hay token, saltamos validaciones de empleado/rol
+        Empleado empleado = null;
+        
+        if (token != null && !token.isEmpty()) {
+            try {
+                String correoEmpleado = jwtUtil.extractUsername(token);
+                empleado = empleadoRepository.findByCorreo(correoEmpleado).orElse(null);
+                if (empleado != null) {
+                    EmpleadoUtil.validarEmpleadoActivo(empleado);
+                    // MVP: Validación de rol deshabilitada para permitir agregar productos sin restricciones
+                    // if (!empleado.getRol().getNombre().equalsIgnoreCase("Mesero")) {
+                    //     throw new Validacion("Solo los meseros pueden agregar productos a un pedido.");
+                    // }
+                }
+            } catch (Exception e) {
+                System.out.println("Token inválido o no proporcionado, continuando sin validación de empleado: " + e.getMessage());
+            }
         }
 
         //Obtener pedido

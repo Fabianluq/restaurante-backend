@@ -70,23 +70,47 @@ public class PedidoService {
             mesa = mesaRepository.findById(request.getMesaId())
                     .orElseThrow(() -> new Validacion("Mesa no encontrada."));
             
-            // Validar que la mesa esté disponible (no reservada u ocupada)
-            String estadoMesa = mesa.getEstado().getDescripcion();
-            if (!estadoMesa.equalsIgnoreCase("Disponible")) {
-                throw new Validacion("La mesa " + mesa.getNumero() + " no está disponible. " +
-                    "Estado actual: " + estadoMesa + ". Solo se pueden asignar mesas disponibles.");
-            }
-            
-            // Validar que no exista un pedido activo para esta mesa
+            // MVP: Validar que no exista un pedido activo para esta mesa
+            // Permitir crear pedidos en mesas "Ocupadas" si no tienen pedidos activos
             boolean tienePedidoActivo = pedidoRepository.existsByMesa_IdAndEstadoPedido_DescripcionIn(
                     mesa.getId(), 
-                    List.of("Pendiente", "En preparación")
+                    List.of("Pendiente", "En preparación", "Listo")
             );
             
             if (tienePedidoActivo) {
                 throw new Validacion("La mesa " + mesa.getNumero() + " ya tiene un pedido activo. " +
                     "No se puede crear otro pedido hasta que el actual esté completado o cancelado.");
             }
+            
+            // MVP: Validar estado de la mesa
+            // Permitir crear pedidos en mesas "Disponible" y "Ocupada" (si no tienen pedidos activos)
+            // Solo rechazar mesas "Reservada"
+            String estadoMesa = mesa.getEstado().getDescripcion();
+            System.out.println("[PedidoService] ===== VALIDACIÓN DE MESA =====");
+            System.out.println("[PedidoService] Mesa ID: " + mesa.getId() + ", Número: " + mesa.getNumero());
+            System.out.println("[PedidoService] Estado de la mesa: " + estadoMesa);
+            System.out.println("[PedidoService] Tiene pedido activo: " + tienePedidoActivo);
+            
+            // MVP: Solo rechazar mesas "Reservada"
+            if (estadoMesa.equalsIgnoreCase("Reservada")) {
+                System.out.println("[PedidoService] ERROR: Mesa está reservada");
+                throw new Validacion("La mesa " + mesa.getNumero() + " está reservada. " +
+                    "No se puede crear un pedido en una mesa reservada.");
+            }
+            
+            // MVP: Permitir explícitamente mesas "Disponible" y "Ocupada" si no tienen pedidos activos
+            boolean esDisponible = estadoMesa.equalsIgnoreCase("Disponible");
+            boolean esOcupada = estadoMesa.equalsIgnoreCase("Ocupada");
+            
+            if (esDisponible || esOcupada) {
+                System.out.println("[PedidoService] ✓ Mesa válida: " + estadoMesa + " (sin pedidos activos)");
+            } else {
+                // Si tiene otro estado, permitirlo para MVP pero loguear advertencia
+                System.out.println("[PedidoService] ADVERTENCIA: Mesa tiene estado inesperado: " + estadoMesa + 
+                    ". Permitiendo crear pedido para MVP.");
+            }
+            
+            System.out.println("[PedidoService] ===== FIN VALIDACIÓN =====");
         }
 
         // Manejar cliente según el tipo de pedido
@@ -131,6 +155,14 @@ public class PedidoService {
         pedido.setEmpleado(empleado);
         pedido.setMesa(mesa);
         pedido.setCliente(cliente);
+
+        // MVP: Actualizar estado de la mesa a "Ocupada" si no es para llevar
+        if (mesa != null) {
+            EstadoMesa estadoOcupada = estadoMesaRepository.findByDescripcionIgnoreCase("Ocupada")
+                    .orElseThrow(() -> new Validacion("No se encontró el estado 'Ocupada' para mesas."));
+            mesa.setEstado(estadoOcupada);
+            mesaRepository.save(mesa);
+        }
 
         return pedidoRepository.save(pedido);
     }
